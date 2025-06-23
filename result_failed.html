@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>결과</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="result-container">
+    <h1>아쉬워요!</h1>
+    <p>아직 모든 고양이를 찾지 못했어요!</p>
+    <p id="score-display">당신의 점수는 : 점아에요</p> <!-- ✅ 점수 표시 라인 추가 -->
+
+    <div class="button-group">
+      <button class="btn restart" onclick="location.href='stage1.html'">다시하기</button>
+      <button class="btn share">공유하기</button>
+    </div>
+  </div>
+
+  <script>
+    // 점수 표시
+  const score = localStorage.getItem('score') || 0;
+  document.getElementById('score-display').innerText = `당신의 점수는 : ${score}점`;
+
+  // 공유 버튼 처리
+  const shareBtn = document.querySelector('.btn.share');
+  shareBtn.addEventListener('click', async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '고양이 찾기 게임 점수',
+          text: `나는 ${score}점을 얻었어요! 당신도 도전해보세요!`,
+          url: window.location.origin, // 또는 원하는 게임 URL
+        });
+      } catch (err) {
+        console.log('공유 취소됨 또는 실패', err);
+      }
+    } else {
+      alert('이 브라우저는 공유 기능을 지원하지 않습니다.');
+    }
+  });
+  </script>
+</body>
+</html>
