@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let flipped = [];
   let matched = 0;
   let score = 0;
-  let timeLeft = stage === 3 ? 15 : 10;
+  let timeLeft = stage === 3 ? 13 : 10;
   let canClick = false;
 
   const grid = document.createElement('div');
