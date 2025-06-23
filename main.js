@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.getElementById('app');
   if (!app) return;
@@ -14,20 +13,18 @@ document.addEventListener('DOMContentLoaded', () => {
   let flipped = [];
   let matched = 0;
   let score = 0;
-  let timeLeft = stage === 3 ? 10 : 10; // ✅ 여기로 변경
+  let timeLeft = stage === 3 ? 15 : 10;
   let canClick = false;
 
   const grid = document.createElement('div');
   grid.style.display = 'grid';
   grid.style.gridTemplateColumns = `repeat(${cols}, 80px)`;
-  grid.style.gap = '10px 10px'; // 세로/가로 간격 통합
-  grid.style.justifyContent = 'center';
-  grid.style.margin = '0 auto';
-  grid.style.width = '100%'; // 전체 너비
-  grid.style.maxWidth = `${cols * 80 + (cols - 1) * 10}px`; // 카드 개수 기준 최대 폭
-  grid.style.marginTop = '20px'; // ✅ 화면 상단과 약간의 간격 추가 (선택)
-  app.appendChild(grid);
+  grid.style.gap = '10px';
+  grid.style.width = 'fit-content';
+  grid.style.margin = '20px auto 0';
+  grid.style.alignSelf = 'center';
 
+  app.appendChild(grid);
 
   const timerWrap = document.createElement('div');
   timerWrap.id = 'timer';
@@ -64,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const countTimer = setInterval(() => {
     countdown--;
-    countEl.innerText = countdown;
+    countEl.innerText = countdown >= 0 ? countdown : '';
     if (countdown < 0) {
       clearInterval(countTimer);
       countEl.remove();
@@ -80,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (timeLeft <= 0) {
         clearInterval(timer);
         showToast("시간 초과!");
-        localStorage.setItem('score', score);  // ✅ 점수 저장 추가
+        localStorage.setItem('score', score);
         setTimeout(() => {
           location.href = 'result_failed.html';
         }, 1500);
@@ -89,36 +86,35 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function flip(card) {
-  if (!canClick) return;
-  if (card.classList.contains('flipped') || flipped.length === 2) return;
+    if (!canClick || card.classList.contains('flipped') || flipped.length === 2) return;
 
-  card.classList.add('flipped');
-  flipped.push(card);
+    card.classList.add('flipped');
+    flipped.push(card);
 
-  if (flipped.length === 2) {
-    const [a, b] = flipped;
-    if (a.dataset.image === b.dataset.image) {
-      score += 10;  // ✅ 성공 시 +10점
-      flipped = [];
-      matched++;
-      if (matched === pairs) {
-        showToast(stage + "단계 완료!");
-        localStorage.setItem('score', score);  // ✅ 점수 저장
-        setTimeout(() => {
-          location.href = stage < 3 ? `stage${stage + 1}.html` : 'result_successed.html';
-        }, 1500);
-      }
-    } else {
-      score -= 1;  // ✅ 실패 시 -1점
-      navigator.vibrate?.(100);
-      setTimeout(() => {
-        a.classList.remove('flipped');
-        b.classList.remove('flipped');
+    if (flipped.length === 2) {
+      const [a, b] = flipped;
+      if (a.dataset.image === b.dataset.image) {
+        score += 10;
         flipped = [];
-      }, 800);
+        matched++;
+        if (matched === pairs) {
+          showToast(stage + "단계 완료!");
+          localStorage.setItem('score', score);
+          setTimeout(() => {
+            location.href = stage < 3 ? `stage${stage + 1}.html` : 'result_successed.html';
+          }, 1500);
+        }
+      } else {
+        score -= 1;
+        navigator.vibrate?.(100);
+        setTimeout(() => {
+          a.classList.remove('flipped');
+          b.classList.remove('flipped');
+          flipped = [];
+        }, 800);
+      }
     }
   }
-}
 
   function showToast(msg) {
     const toast = document.createElement('div');
