@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>결과</title>
+  <title>고양이를 찾아라 | 성공</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -22,6 +22,24 @@
     // ✅ 저장된 점수 가져와서 표시
     const score = localStorage.getItem('score') || 0;
     document.getElementById('score-display').innerText = `당신의 점수는 : ${score}점`;
+
+    // 공유 버튼 처리
+  const shareBtn = document.querySelector('.btn.share');
+  shareBtn.addEventListener('click', async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '고양이 찾기 게임 점수',
+          text: `나는 ${score}점을 얻었어요! 당신도 도전해보세요!`,
+          url: window.location.origin, // 또는 원하는 게임 URL
+        });
+      } catch (err) {
+        console.log('공유 취소됨 또는 실패', err);
+      }
+    } else {
+      alert('이 브라우저는 공유 기능을 지원하지 않습니다.');
+    }
+  });
   </script>
 </body>
 </html>

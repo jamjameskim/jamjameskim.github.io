@@ -6,13 +6,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const rows = parseInt(app.dataset.rows);
   const cols = parseInt(app.dataset.cols);
   const pairs = parseInt(app.dataset.pairs);
-  const images = Array.from({ length: 6 }, (_, i) => `images/cat${i + 1}.png`);
 
+  const totalImages = 16; // 최대 이미지 개수 확장
+  const images = Array.from({ length: totalImages }, (_, i) => `images/cat${i + 1}.png`);
   const selected = images.slice(0, pairs);
   const deck = shuffle([...selected, ...selected]).slice(0, rows * cols);
+
   let flipped = [];
   let matched = 0;
-  let score = 0;
+  let score = parseInt(localStorage.getItem('score') || '0');
   let timeLeft = stage === 3 ? 13 : 10;
   let canClick = false;
 
@@ -23,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
   grid.style.width = 'fit-content';
   grid.style.margin = '20px auto 0';
   grid.style.alignSelf = 'center';
-
   app.appendChild(grid);
 
   const timerWrap = document.createElement('div');
@@ -54,21 +55,19 @@ document.addEventListener('DOMContentLoaded', () => {
     grid.appendChild(card);
   });
 
-  let countdown = 3;
-  const countEl = document.createElement('h1');
-  countEl.innerText = countdown;
-  app.insertBefore(countEl, timerWrap);
+  const countdownTexts = ['준비!', '2', '1'];
+let countdown = 0;
 
-  const countTimer = setInterval(() => {
-    countdown--;
-    countEl.innerText = countdown >= 0 ? countdown : '';
-    if (countdown < 0) {
-      clearInterval(countTimer);
-      countEl.remove();
-      canClick = true;
-      startTimer();
-    }
-  }, 1000);
+const countTimer = setInterval(() => {
+  if (countdown < countdownTexts.length) {
+    showToast(countdownTexts[countdown], 1000, 'count-toast');
+    countdown++;
+  } else {
+    clearInterval(countTimer);
+    canClick = true;
+    startTimer();
+  }
+}, 1000);
 
   function startTimer() {
     const timer = setInterval(() => {
@@ -85,44 +84,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   }
 
-  function flip(card) {
-    if (!canClick || card.classList.contains('flipped') || flipped.length === 2) return;
+function flip(card) {
+  if (!canClick || card.classList.contains('flipped') || flipped.length === 2) return;
 
-    card.classList.add('flipped');
-    flipped.push(card);
+  card.classList.add('flipped');
+  flipped.push(card);
 
-    if (flipped.length === 2) {
-      const [a, b] = flipped;
-      if (a.dataset.image === b.dataset.image) {
-        score += 10;
-        flipped = [];
-        matched++;
-        if (matched === pairs) {
-          showToast(stage + "단계 완료!");
-          localStorage.setItem('score', score);
-          setTimeout(() => {
-            location.href = stage < 3 ? `stage${stage + 1}.html` : 'result_successed.html';
-          }, 1500);
-        }
-      } else {
-        score -= 1;
-        navigator.vibrate?.(100);
-        setTimeout(() => {
-          a.classList.remove('flipped');
-          b.classList.remove('flipped');
-          flipped = [];
-        }, 800);
+  if (flipped.length === 2) {
+    const [a, b] = flipped;
+    const image = a.dataset.image;
+
+    if (image === b.dataset.image) {
+      let bonus = 0;
+      if (image.includes('cat1')) {
+        bonus = 5; // ✅ cat1 맞출 경우 추가 점수
+         showToast('고양이 보너스 +5점!'); // ✅ 보너스 메시지 출력
       }
+
+      score += 10 + bonus;
+      flipped = [];
+      matched++;
+
+      if (matched === pairs) {
+        showToast(`${stage}단계 완료!`);
+        localStorage.setItem('score', score);
+        setTimeout(() => {
+          if (stage < 4) {
+            location.href = `stage${stage + 1}.html`;
+          } else {
+            location.href = 'result_successed.html';
+          }
+        }, 1500);
+      }
+    } else {
+      score -= 1;
+      navigator.vibrate?.(100);
+      setTimeout(() => {
+        a.classList.remove('flipped');
+        b.classList.remove('flipped');
+        flipped = [];
+      }, 800);
     }
   }
+}
 
-  function showToast(msg) {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerText = msg;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 1000);
-  }
+
+  function showToast(msg, duration = 1000, customClass = '') {
+  const toast = document.createElement('div');
+  toast.className = `toast ${customClass}`.trim();
+  toast.innerText = msg;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
 
   function shuffle(arr) {
     return arr.sort(() => 0.5 - Math.random());

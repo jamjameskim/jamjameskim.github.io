@@ -169,3 +169,27 @@ button {
   background: #FF9640;
   transition: width 1s linear;
 }
+
+.countdown-number {
+  font-size: 100px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow:
+    -3px -3px 0 #000,
+    3px -3px 0 #000,
+    -3px 3px 0 #000,
+    3px 3px 0 #000;
+  font-family: 'Comic Sans MS', 'Fredoka', 'Arial Rounded MT Bold', cursive;
+}
+
+.count-toast {
+  font-size: 100px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow:
+    -3px -3px 0 #000,
+    3px -3px 0 #000,
+    -3px 3px 0 #000,
+    3px 3px 0 #000;
+  font-family: 'Pretendard', sans-serif;
+}
