@@ -14,7 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let flipped = [];
   let matched = 0;
-  let score = parseInt(localStorage.getItem('score') || '0');
+  let score;
+  if (stage === 1) {
+    localStorage.setItem('score', '0'); // 초기화
+    score = 0;
+  } else {
+    score = parseInt(localStorage.getItem('score') || '0');
+  }
   let canClick = false;
   let timeLeft;
   let totalTime;
