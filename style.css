@@ -120,7 +120,7 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 30vh;
+  margin-top: 15vh;
 }
 
 .result-container h1 {
@@ -185,4 +185,29 @@ button {
 
 #timer.warning > div {
   background: #ff4d4d; /* 붉은 경고색 */
+}
+
+.text-link {
+  display: block;
+  margin-top: 20px; /* ✅ 여백 추가 */
+  text-align: center;
+  font-size: 14px;
+  color: #FF9640;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+#subtext-link {
+  text-align: center;
+  font-size: 12px;
+  margin-top: 8px; /* 필요 시 여백 조정 */
+  color: #333;
+}
+
+#score-display{
+  font-size: 20px;
+  color: #333;
 }
