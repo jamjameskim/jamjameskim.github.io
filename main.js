@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let flipped = [];
   let matched = 0;
   let score = parseInt(localStorage.getItem('score') || '0');
-  let timeLeft = stage === 3 ? 13 : 10;
+  let timeLeft = stage === 4 ? 15 : 13;
   let canClick = false;
 
   const grid = document.createElement('div');
@@ -85,7 +85,8 @@ const countTimer = setInterval(() => {
   }
 
 function flip(card) {
-  if (!canClick || card.classList.contains('flipped') || flipped.length === 2) return;
+  // 이미 맞춘 카드거나, 지금 뒤집고 있는 중이면 무시
+  if (!canClick || card.classList.contains('flipped') || flipped.includes(card)) return;
 
   card.classList.add('flipped');
   flipped.push(card);
@@ -97,8 +98,8 @@ function flip(card) {
     if (image === b.dataset.image) {
       let bonus = 0;
       if (image.includes('cat1')) {
-        bonus = 5; // ✅ cat1 맞출 경우 추가 점수
-         showToast('고양이 보너스 +5점!'); // ✅ 보너스 메시지 출력
+        bonus = 5;
+        showToast('고양이 보너스 +5점!', 1500);
       }
 
       score += 10 + bonus;
@@ -118,16 +119,17 @@ function flip(card) {
       }
     } else {
       score -= 1;
+      const [cardA, cardB] = flipped;
+      const currentFlipped = [...flipped]; // 잠깐 저장
+      flipped = []; // 다음 카드 클릭 가능하게 초기화
       navigator.vibrate?.(100);
       setTimeout(() => {
-        a.classList.remove('flipped');
-        b.classList.remove('flipped');
-        flipped = [];
+        cardA.classList.remove('flipped');
+        cardB.classList.remove('flipped');
       }, 800);
     }
   }
 }
-
 
   function showToast(msg, duration = 1000, customClass = '') {
   const toast = document.createElement('div');
