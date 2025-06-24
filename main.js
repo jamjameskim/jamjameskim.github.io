@@ -18,19 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
   let canClick = false;
   let timeLeft;
   let totalTime;
-  let timerInterval;  // 전역 타이머 변수 선언
+  let timerInterval;
 
-  // 스테이지별 제한 시간 설정
-  if (stage === 4) {
-    timeLeft = 15;
-  } else if (stage === 3) {
-    timeLeft = 13;
-  } else {
-    timeLeft = 10;
-  }
+  if (stage === 4) timeLeft = 15;
+  else if (stage === 3) timeLeft = 13;
+  else timeLeft = 10;
   totalTime = timeLeft;
 
-  // 카드판(Grid) 생성
   const grid = document.createElement('div');
   grid.style.display = 'grid';
   grid.style.gridTemplateColumns = `repeat(${cols}, 80px)`;
@@ -40,14 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
   grid.style.alignSelf = 'center';
   app.appendChild(grid);
 
-  // 타이머 바 생성
   const timerWrap = document.createElement('div');
   timerWrap.id = 'timer';
   const timerBar = document.createElement('div');
   timerWrap.appendChild(timerBar);
   app.insertBefore(timerWrap, grid);
 
-  // 카드 생성 및 배치
   deck.forEach((imgSrc) => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -70,26 +62,22 @@ document.addEventListener('DOMContentLoaded', () => {
     grid.appendChild(card);
   });
 
- // 카운트다운 ("준비!" → "시작!")
-const countdownTexts = ['준비!', '시작!'];
-let countdown = 0;
+  const countdownTexts = ['준비!', '시작!'];
+  let countdown = 0;
 
-const countTimer = setInterval(() => {
-  if (countdown < countdownTexts.length) {
-    // 시작!이 뜨는 순간에 클릭 허용 + 타이머 시작
-    if (countdownTexts[countdown] === '시작!') {
-      canClick = true;
-      startTimer();
+  const countTimer = setInterval(() => {
+    if (countdown < countdownTexts.length) {
+      if (countdownTexts[countdown] === '시작!') {
+        canClick = true;
+        startTimer();
+      }
+      showToast(countdownTexts[countdown], 1000, 'count-toast');
+      countdown++;
+    } else {
+      clearInterval(countTimer);
     }
+  }, 1000);
 
-    showToast(countdownTexts[countdown], 1000, 'count-toast');
-    countdown++;
-  } else {
-    clearInterval(countTimer);
-  }
-}, 1000);
-
-  // 카드 클릭 처리
   function flip(card) {
     if (!canClick || card.classList.contains('flipped') || flipped.includes(card)) return;
 
@@ -106,14 +94,13 @@ const countTimer = setInterval(() => {
           bonus = 5;
           showToast('고양이 보너스 +5점!', 1500);
         }
-
         score += 10 + bonus;
         flipped = [];
         matched++;
 
-        // 게임 성공 시 타이머 정지
         if (matched === pairs) {
-          clearInterval(timerInterval);  // 타이머 중지
+          clearInterval(timerInterval);
+          canClick = false;
           showToast(`${stage}단계 완료!`);
           localStorage.setItem('score', score);
           setTimeout(() => {
@@ -123,7 +110,7 @@ const countTimer = setInterval(() => {
       } else {
         score -= 1;
         const [cardA, cardB] = flipped;
-        flipped = []; // 다음 카드 선택 허용
+        flipped = [];
         navigator.vibrate?.(100);
         setTimeout(() => {
           cardA.classList.remove('flipped');
@@ -133,25 +120,36 @@ const countTimer = setInterval(() => {
     }
   }
 
-  // 타이머 시작
   function startTimer() {
+    updateProgress();
+
     timerInterval = setInterval(() => {
       timeLeft--;
-      const percentage = (timeLeft / totalTime) * 100;
-      timerBar.style.width = `${percentage}%`;
+      updateProgress();
 
-      if (timeLeft <= 0) {
+      if (timeLeft < 0) {
         clearInterval(timerInterval);
+        canClick = false;
         showToast("시간 초과!");
         localStorage.setItem('score', score);
         setTimeout(() => {
           location.href = 'result_failed.html';
-        }, 1500);
+        }, 2000);
       }
     }, 1000);
   }
 
-  // 토스트 메시지 표시
+  function updateProgress() {
+    const percentage = Math.max(0, (timeLeft / totalTime) * 100);
+    timerBar.style.width = `${percentage}%`;
+
+    if (timeLeft <= 3) {
+      timerWrap.classList.add('warning');
+    } else {
+      timerWrap.classList.remove('warning');
+    }
+  }
+
   function showToast(msg, duration = 1000, customClass = '') {
     const toast = document.createElement('div');
     toast.className = `toast ${customClass}`.trim();
@@ -164,7 +162,6 @@ const countTimer = setInterval(() => {
     }, duration);
   }
 
-  // 카드 섞기
   function shuffle(arr) {
     return arr.sort(() => 0.5 - Math.random());
   }

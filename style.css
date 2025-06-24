@@ -182,3 +182,7 @@ button {
   font-family: 'Pretendard', sans-serif;
   white-space: nowrap; /* ✅ 줄바꿈 방지 */
 }
+
+#timer.warning > div {
+  background: #ff4d4d; /* 붉은 경고색 */
+}
