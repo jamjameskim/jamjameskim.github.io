@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>고양이 랭킹</title>
+
+  <!-- SEO & SNS -->
+  <meta name="description" content="귀여운 고양이 카드로 기억력을 테스트해보세요! 누구나 즐길 수 있는 간단한 카드 뒤집기 게임.">
+  <meta property="og:title" content="고양이 찾기 기억력 게임">
+  <meta property="og:description" content="귀여운 고양이들과의 기억력 대결! 당신도 도전해보세요.">
+  <meta property="og:image" content="https://jamjameskim.github.io/images/metaImage.png">
+  <meta property="og:url" content="https://jamjameskim.github.io">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="고양이 찾기 기억력 게임">
+  <meta name="twitter:description" content="귀여운 고양이들과의 기억력 대결! 당신도 도전해보세요.">
+  <meta name="twitter:image" content="https://jamjameskim.github.io/images/metaImage.png">
+  <meta name="twitter:url" content="https://jamjameskim.github.io">
+
+  <!-- Pretendard Font -->
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet"/>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5NZTKSZPPG"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-5NZTKSZPPG');
+  </script>
+
+  <!-- 스타일 -->
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #fff8ea;
+      font-family: 'Pretendard', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #app {
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 26px;
+      color: #FF9640;
+      margin-bottom: 10px;
+    }
+
+    #ranking-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 auto 20px;
+    }
+
+    #ranking-list li {
+      text-align: center;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      font-size: 16px;
+      color: #333;
+    }
+
+    #loading {
+      color: #999;
+      margin-bottom: 20px;
+    }
+
+    #registerBtn {
+      display: none;
+      margin: 20px auto;
+      padding: 14px 24px;
+      background: #FF9640;
+      box-shadow: 0 4px 0 #d1792e;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #popup {
+      display: none;
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 1px solid #ccc;
+      padding: 20px;
+      box-shadow: 2px 2px 10px #aaa;
+      border-radius: 10px;
+      width: 260px;
+      text-align: center;
+      z-index: 1000;
+    }
+
+    #popup input {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    #popup button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 12px;
+      background-color: #FF9640;
+      box-shadow: 0 4px 0 #d1792e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #popup button:disabled {
+      background-color: #ccc;
+      box-shadow: none;
+      color: #666;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>🏆 고양이 찾기 랭킹</h1>
+    <p>랭킹은 상위 10개만 표시됩니다:)</p>
+    <p id="loading">불러오는 중...</p>
+    <ul id="ranking-list"></ul>
+    <button id="registerBtn">랭킹 등록하기</button>
+  </div>
+
+  <div id="popup">
+    <p>이름을 입력해주세요:</p>
+    <input type="text" id="nicknameInput" placeholder="닉네임">
+    <button id="saveBtn">저장</button>
+  </div>
+
+  <script>
+    const score = Number(localStorage.getItem("cat-game-score") || 0);
+    const registered = localStorage.getItem("scoreRegistered");
+    const registerBtn = document.getElementById("registerBtn");
+    const popup = document.getElementById("popup");
+    const loading = document.getElementById("loading");
+    const list = document.getElementById("ranking-list");
+    const saveButton = document.getElementById("saveBtn");
+
+    if (score > 0 && score < 1000 && !registered) {
+      registerBtn.style.display = "block";
+    }
+
+    registerBtn.addEventListener("click", () => {
+      popup.style.display = "block";
+    });
+
+    saveButton.addEventListener("click", async () => {
+      const nickname = document.getElementById("nicknameInput").value.trim();
+
+      if (!nickname) {
+        alert("이름을 입력해주세요.");
+        return;
+      }
+
+      saveButton.disabled = true;
+      saveButton.textContent = "저장중...";
+
+      try {
+        await fetch("https://script.google.com/macros/s/AKfycbxNSzz6xzFxNpm3o4OKRIN5dJ9Ps2Td2BTZDgdZxGi-ExfYIpWdXkMY1E8ZPgKmtf0c/exec", {
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify({ nickname, score })
+        });
+
+        localStorage.setItem("scoreRegistered", "true");
+        alert("등록되었습니다!");
+        popup.style.display = "none";
+        registerBtn.style.display = "none";
+        fetchRanking();
+      } catch (err) {
+        alert("등록에 실패했습니다.");
+      } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = "저장";
+      }
+    });
+
+    function fetchRanking() {
+      loading.style.display = "block";
+
+      fetch("https://script.google.com/macros/s/AKfycbxNSzz6xzFxNpm3o4OKRIN5dJ9Ps2Td2BTZDgdZxGi-ExfYIpWdXkMY1E8ZPgKmtf0c/exec")
+        .then(res => res.json())
+        .then(data => {
+          list.innerHTML = '';
+          data.slice(0, 10).forEach((entry, i) => {
+            const li = document.createElement("li");
+            li.textContent = `${i + 1}위 - ${entry.nickname}: ${entry.score}점`;
+            list.appendChild(li);
+          });
+          loading.style.display = "none";
+        })
+        .catch(() => {
+          loading.textContent = "불러오기 실패 😿";
+        });
+    }
+
+    fetchRanking();
+  </script>
+</body>
+</html>

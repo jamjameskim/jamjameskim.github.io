@@ -109,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
           canClick = false;
           showToast(`${stage}단계 완료!`);
           localStorage.setItem('score', score);
+          localStorage.setItem('cat-game-score', score);
           setTimeout(() => {
             location.href = stage < 4 ? `stage${stage + 1}.html` : 'result_successed.html';
           }, 1500);
