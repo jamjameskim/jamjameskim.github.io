@@ -38,6 +38,25 @@ document.addEventListener('DOMContentLoaded', () => {
   grid.style.width = 'fit-content';
   grid.style.margin = '20px auto 0';
   grid.style.alignSelf = 'center';
+
+  // 반응형 처리 함수
+  function updateGridLayout() {
+    if (window.innerWidth <= 350) {
+      grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      grid.style.width = '100%';
+      grid.style.maxWidth = '100vw';
+    } else {
+      grid.style.gridTemplateColumns = `repeat(${cols}, 80px)`;
+      grid.style.width = 'fit-content';
+      grid.style.maxWidth = 'none';
+      grid.style.padding = '0';
+    }
+  }
+
+  // 초기 실행 및 리사이즈 이벤트 리스너
+  updateGridLayout();
+  window.addEventListener('resize', updateGridLayout);
+
   app.appendChild(grid);
 
   const timerWrap = document.createElement('div');
@@ -137,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (timeLeft < 0) {
         clearInterval(timerInterval);
         canClick = false;
-        showToast("시간 초과!");
+        showToast('시간 초과!');
         localStorage.setItem('score', score);
         setTimeout(() => {
           location.href = 'result_failed.html';
