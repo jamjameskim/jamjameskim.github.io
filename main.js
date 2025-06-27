@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 반응형 처리 함수
   function updateGridLayout() {
-    if (window.innerWidth <= 350) {
+    if (window.innerWidth <= 350 && stage === 4) {
       grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
       grid.style.width = '100%';
       grid.style.maxWidth = '100vw';
