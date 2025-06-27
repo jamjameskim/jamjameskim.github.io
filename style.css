@@ -1,10 +1,11 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden;          /* ✅ 스크롤 제거 */
-  background-color: #FFF6E3;
+  overflow: hidden; /* ✅ 스크롤 제거 */
+  background-color: #fff6e3;
   font-family: sans-serif;
 }
 
@@ -12,12 +13,12 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;   /* ✅ 수직 중앙 정렬 */
-  height: 100vh;             /* ✅ 뷰포트 기준 높이 */
-  width: 100vw;              /* ✅ 뷰포트 기준 너비 */
+  justify-content: center; /* ✅ 수직 중앙 정렬 */
+  height: 100vh; /* ✅ 뷰포트 기준 높이 */
+  width: 100vw; /* ✅ 뷰포트 기준 너비 */
   box-sizing: border-box;
   overflow: hidden;
-  padding: 0 10px;           /* ✅ 좌우 여백 최소화 */
+  padding: 0 10px; /* ✅ 좌우 여백 최소화 */
 }
 
 .landing {
@@ -31,18 +32,23 @@ html, body {
 h1.bounce {
   animation: bounce 1.5s infinite;
   font-size: 40px;
-  color: #FF9640;
+  color: #ff9640;
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 button {
   padding: 14px 30px;
   font-size: 18px;
-  background-color: #FF9640;
+  background-color: #ff9640;
   color: white;
   border: none;
   border-radius: 10px;
@@ -84,18 +90,19 @@ button {
   transform: rotateY(180deg);
 }
 
-.card-front, .card-back {
+.card-front,
+.card-back {
   width: 100%;
   height: 100%;
   position: absolute;
   backface-visibility: hidden;
-  border-radius: 16px;
+  border-radius: clamp(8px, 2.5vw, 16px);
   overflow: hidden;
 }
 
 .card-front {
   background: url('images/card_back_custom.png') center/cover no-repeat;
-  background-color: #ccc;
+  background-color: transparent;
 }
 
 .card-back {
@@ -125,7 +132,7 @@ button {
 
 .result-container h1 {
   font-size: 28px;
-  color: #FF9640;
+  color: #ff9640;
   margin-bottom: 10px;
 }
 
@@ -145,7 +152,7 @@ button {
 .btn {
   padding: 14px;
   font-size: 16px;
-  background-color: #FF9640;
+  background-color: #ff9640;
   color: white;
   border: none;
   border-radius: 10px;
@@ -166,7 +173,7 @@ button {
 #timer > div {
   height: 100%;
   width: 100%;
-  background: #FF9640;
+  background: #ff9640;
   transition: width 1s linear;
 }
 
@@ -174,11 +181,7 @@ button {
   font-size: clamp(48px, 10vw, 100px); /* ✅ 모바일에서 자동 축소 */
   font-weight: 900;
   color: #fff;
-  text-shadow:
-    -3px -3px 0 #000,
-    3px -3px 0 #000,
-    -3px 3px 0 #000,
-    3px 3px 0 #000;
+  text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000;
   font-family: 'Pretendard', sans-serif;
   white-space: nowrap; /* ✅ 줄바꿈 방지 */
 }
@@ -192,7 +195,7 @@ button {
   margin-top: 20px; /* ✅ 여백 추가 */
   text-align: center;
   font-size: 14px;
-  color: #FF9640;
+  color: #ff9640;
   text-decoration: underline;
   background: none;
   border: none;
@@ -207,9 +210,7 @@ button {
   color: #333;
 }
 
-#score-display{
+#score-display {
   font-size: 20px;
   color: #333;
 }
-
-
