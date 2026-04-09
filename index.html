@@ -906,9 +906,9 @@
     }
 
     function calculateRecentComponent(windowValues, config) {
-      const paddedValues = [...windowValues];
+      const paddedValues = [...windowValues].reverse();
       while (paddedValues.length < 7) {
-        paddedValues.unshift(0);
+        paddedValues.push(0);
       }
 
       const scaledValues = paddedValues.map((value) => applyLogScale(value, config.useLogRecent));
