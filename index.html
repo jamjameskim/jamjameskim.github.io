@@ -1,50 +1,1511 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>고양이 찾기 기억력 게임</title>
-  <meta name="description" content="귀여운 고양이 카드로 기억력을 테스트해보세요! 누구나 즐길 수 있는 간단한 카드 뒤집기 게임. 점수도 공유하고, 내 사진으로 캐릭터도 만들어보세요.">
-  <!-- Open Graph (OG) 메타태그 for SNS 공유 -->
-  <meta property="og:title" content="고양이 찾기 기억력 게임">
-  <meta property="og:description" content="귀여운 고양이들과의 기억력 대결! 당신도 도전해보세요. 점수 공유는 물론, 내 캐릭터도 만들 수 있어요.">
-  <meta property="og:image" content="https://jamjameskim.github.io/images/metaImage.png"> <!-- 실제 경로에 맞게 수정 -->
-  <meta property="og:url" content="https://jamjameskim.github.io"> <!-- 실제 게임 진입 경로 -->
-  <meta property="og:type" content="website">
-  <link rel="stylesheet" href="style.css">
-  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
-  <!-- Twitter Cards -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="고양이 찾기 기억력 게임">
-  <meta name="twitter:description" content="귀여운 고양이들과의 기억력 대결! 당신도 도전해보세요. 점수 공유는 물론, 내 캐릭터도 만들 수 있어요.">
-  <meta name="twitter:image" content="https://jamjameskim.github.io/images/metaImage.png">
-  <meta name="twitter:url" content="https://jamjameskim.github.io">
-   <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5NZTKSZPPG"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>상품 카드 정렬 시뮬레이터</title>
+  <style>
+    :root {
+      --bg: #f3efe6;
+      --panel: rgba(255, 252, 247, 0.92);
+      --panel-strong: #fffdf8;
+      --line: rgba(104, 82, 56, 0.18);
+      --text: #2a2118;
+      --muted: #776657;
+      --accent: #be5b31;
+      --accent-soft: rgba(190, 91, 49, 0.14);
+      --green: #2b7a4b;
+      --shadow: 0 18px 48px rgba(73, 50, 30, 0.08);
+    }
 
-    gtag('config', 'G-5NZTKSZPPG');
-</script>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "SUIT", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.8), transparent 35%),
+        linear-gradient(180deg, #f5f1e8 0%, #ece4d7 100%);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+
+    .hero {
+      margin-bottom: 18px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background:
+        linear-gradient(135deg, rgba(255, 251, 245, 0.96), rgba(245, 233, 220, 0.92)),
+        #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 32px;
+      line-height: 1.15;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      max-width: 900px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 430px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin: 0 0 10px;
+      letter-spacing: -0.03em;
+    }
+
+    .subtext {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .section {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-7 {
+      display: grid;
+      gap: 10px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-7 {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    label,
+    .label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      border: 1px solid rgba(104, 82, 56, 0.18);
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(190, 91, 49, 0.12);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .toggle-row,
+    .header-row,
+    .summary-cards,
+    .ranking-head {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .toggle input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #efe2d4;
+      color: var(--text);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid rgba(104, 82, 56, 0.18);
+    }
+
+    .product-list {
+      display: grid;
+      gap: 12px;
+      max-height: 72vh;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .product-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      background: #fff;
+      display: grid;
+      gap: 12px;
+    }
+
+    .product-card .title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .micro {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .results {
+      display: grid;
+      gap: 18px;
+    }
+
+    .summary-cards {
+      flex-wrap: wrap;
+    }
+
+    .summary-card {
+      min-width: 160px;
+      flex: 1;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(247,239,231,0.92));
+    }
+
+    .summary-card .k {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .summary-card .v {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .ranking-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .ranking-item {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr) 150px;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .rank-badge {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .score {
+      text-align: right;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .score-sub {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .timeline-table-wrap {
+      overflow: auto;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid rgba(104, 82, 56, 0.12);
+      padding: 10px 12px;
+      text-align: center;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    th:first-child,
+    td:first-child {
+      position: sticky;
+      left: 0;
+      background: #fffaf3;
+      z-index: 1;
+      text-align: left;
+      font-weight: 800;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #fffaf3;
+      z-index: 2;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: #f2e6d8;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .empty {
+      padding: 28px;
+      border: 1px dashed rgba(104, 82, 56, 0.22);
+      border-radius: 18px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.55);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .good {
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .tab-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      background: #efe2d4;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .tab-btn.tab-active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .product-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .preset-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #efe2d4;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .preset-chip:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .preset-chip .del {
+      font-size: 14px;
+      line-height: 1;
+      color: var(--muted);
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-weight: 400;
+      border-radius: 0;
+      transform: none;
+    }
+
+    .preset-chip .del:hover {
+      color: var(--accent);
+      transform: none;
+    }
+
+    .preset-empty {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1200px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .product-list {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 16px 12px 36px;
+      }
+
+      .hero {
+        padding: 20px;
+      }
+
+      .hero h1 {
+        font-size: 26px;
+      }
+
+      .grid-2,
+      .grid-3,
+      .grid-7,
+      .forecast-grid,
+      .ranking-item {
+        grid-template-columns: 1fr;
+      }
+
+      .score {
+        text-align: left;
+      }
+    }
+  </style>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-  <div id="app">
-    <div class="landing">
-      <h1 class="bounce">고양이를 찾아라!</h1>
-       <p style="font-size: 16px; color: #555;">고양이를 찾아라!는 카드 맞추기 게임입니다🐱<br>근데 이제 고양이 보너스 점수를 곁들인..</p>
-
-      <div class="card-preview">
-        <img id="card-back" src="images/card_back_custom.png" alt="카드 뒷면">
-        <img id="card-front" src="images/cat1.png" alt="카드 앞면">
+  <div class="page">
+    <section class="hero">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <div>
+          <h1>1열 가로스크롤 상품 카드 정렬 시뮬레이터</h1>
+          <p>
+            추천 점수 규칙을 바꿔가며 상품 순서가 얼마나 달라지는지 확인할 수 있는 단일 HTML 시뮬레이터입니다.
+            기본 점수, 7일 상세 가중치, 최근 등록일 가중치, 그리고 1일~30일 시간 경과에 따른 순위 변화를 함께 비교할 수 있습니다.
+          </p>
+        </div>
+        <button id="exportHtml" class="btn-secondary" type="button" style="white-space:nowrap;flex-shrink:0;">HTML 내보내기</button>
       </div>
+    </section>
 
-      <button onclick="location.href='stage1.html'">시작하기</button>
+    <div class="layout">
+      <aside class="panel stack">
+        <section class="section">
+          <div id="presetBar" class="preset-bar"></div>
+        </section>
 
-      <p style="font-size: 12px; color: #555;">* 고양이를 찾아라!는 모바일 환경에서 더 나은 경험을 제공합니다.</p>
+        <section class="section">
+          <div class="header-row">
+            <div>
+              <h2>점수 규칙</h2>
+              <p class="subtext">예시 식을 기본값으로 넣어두었습니다. 숫자를 바꾸면 결과가 즉시 다시 계산됩니다.</p>
+            </div>
+            <button id="savePreset" class="btn-primary" type="button">설정 저장</button>
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label for="recentWeight">최근 7일 주문수 가중치</label>
+              <input id="recentWeight" type="number" step="0.1" value="0.7" />
+            </div>
+            <div>
+              <label for="cumulativeWeight">누적 판매량 가중치</label>
+              <input id="cumulativeWeight" type="number" step="0.1" value="0.3" />
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <label class="toggle">
+              <input id="useLogRecent" type="checkbox" />
+              <span>하루 판매량 로그스케일 적용</span>
+            </label>
+            <label class="toggle">
+              <input id="useLogCumulative" type="checkbox" />
+              <span>누적판매량 로그스케일 적용</span>
+            </label>
+          </div>
+
+          <div class="micro">
+            로그스케일은 <strong>log(1 + 값)</strong>을 사용합니다. 큰 수의 영향은 줄이고, 작은 수 차이는 더 잘 보이게 만듭니다.
+          </div>
+
+          <label class="toggle">
+            <input id="useDetailedWeights" type="checkbox" checked />
+            <span>7일 상세 가중치 사용</span>
+          </label>
+
+          <div id="detailedWeightsBox" class="grid-7">
+            <div>
+              <label for="dayWeight1">1일 전</label>
+              <input id="dayWeight1" type="number" step="0.1" value="1.0" />
+            </div>
+            <div>
+              <label for="dayWeight2">2일 전</label>
+              <input id="dayWeight2" type="number" step="0.1" value="0.8" />
+            </div>
+            <div>
+              <label for="dayWeight3">3일 전</label>
+              <input id="dayWeight3" type="number" step="0.1" value="0.6" />
+            </div>
+            <div>
+              <label for="dayWeight4">4일 전</label>
+              <input id="dayWeight4" type="number" step="0.1" value="0.45" />
+            </div>
+            <div>
+              <label for="dayWeight5">5일 전</label>
+              <input id="dayWeight5" type="number" step="0.1" value="0.3" />
+            </div>
+            <div>
+              <label for="dayWeight6">6일 전</label>
+              <input id="dayWeight6" type="number" step="0.1" value="0.2" />
+            </div>
+            <div>
+              <label for="dayWeight7">7일 전</label>
+              <input id="dayWeight7" type="number" step="0.1" value="0.1" />
+            </div>
+          </div>
+
+          <label class="toggle">
+            <input id="useFreshnessWeight" type="checkbox" />
+            <span>최근 등록일 가까운 순 가중치 사용</span>
+          </label>
+
+          <div id="freshnessBox" class="grid-2 hidden">
+            <div>
+              <label for="freshnessWeight">신규성 가중치</label>
+              <input id="freshnessWeight" type="number" step="0.1" value="0.25" />
+            </div>
+            <div>
+              <label for="freshnessWindow">신규성 반영 기간(일)</label>
+              <input id="freshnessWindow" type="number" step="1" min="1" max="90" value="30" />
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="header-row">
+            <div>
+              <h3>시간 변화</h3>
+              <p class="subtext">선택한 날짜의 직전 7일 데이터를 기준으로 정렬합니다.</p>
+            </div>
+            <span id="dayLabel" class="pill">D+8</span>
+          </div>
+
+          <div>
+            <label for="timeOffset">시뮬레이션 기준일</label>
+            <input id="timeOffset" type="range" min="1" max="30" value="8" />
+          </div>
+
+          <div class="micro">
+            기준: D+8은 D+1~D+7, D+9는 D+2~D+8, D+30은 D+23~D+29 주문 데이터를 사용합니다.
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="header-row">
+            <div>
+              <h3>상품 입력</h3>
+              <p class="subtext">최대 30개까지 추가할 수 있습니다.</p>
+            </div>
+            <div class="header-row">
+              <button id="addProduct" class="btn-primary" type="button">상품 추가</button>
+              <button id="importExcel" class="btn-secondary" type="button">엑셀 임포트</button>
+              <button id="loadSample" class="btn-secondary" type="button">샘플 채우기</button>
+              <input id="excelFileInput" type="file" accept=".xlsx,.xls,.csv" style="display:none" />
+            </div>
+          </div>
+
+          <div id="productList" class="product-list"></div>
+        </section>
+      </aside>
+
+      <main class="results">
+        <section class="panel stack">
+          <div class="header-row">
+            <div>
+              <h2>현재 정렬 결과</h2>
+              <p class="subtext">선택한 날짜 기준으로 점수를 다시 계산한 뒤 높은 순으로 정렬합니다.</p>
+            </div>
+            <div id="activeFormula" class="pill">계산식 준비 중</div>
+          </div>
+
+          <div id="summaryCards" class="summary-cards"></div>
+          <div id="rankingList" class="ranking-list"></div>
+        </section>
+
+        <section class="panel stack">
+          <div class="header-row">
+            <div>
+              <h2>1일~30일 순위 변화표</h2>
+              <p class="subtext">각 날짜에서의 순위를 한 번에 확인할 수 있습니다.</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div class="tab-row">
+                <button id="tabByProduct" class="tab-btn tab-active" type="button">상품별 순위</button>
+                <button id="tabByRank" class="tab-btn" type="button">순위별 상품</button>
+              </div>
+              <button id="exportXlsx" class="btn-secondary" type="button">엑셀 다운로드</button>
+            </div>
+          </div>
+          <div id="timelineTableWrap" class="timeline-table-wrap"></div>
+        </section>
+      </main>
     </div>
   </div>
+
+  <template id="productCardTemplate">
+    <article class="product-card">
+      <div class="header-row">
+        <div class="title"></div>
+        <button class="btn-ghost remove-btn" type="button">삭제</button>
+      </div>
+
+      <div class="grid-3">
+        <div>
+          <label>상품명</label>
+          <input class="input-name" type="text" />
+        </div>
+        <div>
+          <label>누적 판매량</label>
+          <input class="input-cumulative" type="number" step="1" min="0" />
+        </div>
+        <div>
+          <label>등록 후 경과일</label>
+          <input class="input-age" type="number" step="1" min="0" />
+        </div>
+      </div>
+
+      <div>
+        <div class="label">D+1 ~ D+30 일자별 주문수</div>
+        <div class="forecast-grid daily-grid"></div>
+      </div>
+
+      <div class="micro card-score"></div>
+      <div class="micro card-note"></div>
+    </article>
+  </template>
+
+  <script>
+    const MAX_PRODUCTS = 30;
+    const BUNDLED_PRESETS = []; /* __BUNDLED_PRESETS__ */
+    const PRODUCT_COLORS = [
+      { bg: "#fde8d8", text: "#be5b31" },
+      { bg: "#d8eafd", text: "#2d6bbf" },
+      { bg: "#d8fde8", text: "#2b7a4b" },
+      { bg: "#fdf5d8", text: "#9a7c1f" },
+      { bg: "#ead8fd", text: "#7a3bbf" },
+      { bg: "#fdd8e8", text: "#bf2d6b" },
+      { bg: "#d8fdfd", text: "#1f8a8a" },
+      { bg: "#fdecd8", text: "#a05a1a" },
+      { bg: "#e8fdd8", text: "#4a8a1f" },
+      { bg: "#d8d8fd", text: "#3b3bbf" },
+    ];
+    const productListEl = document.getElementById("productList");
+    const rankingListEl = document.getElementById("rankingList");
+    const timelineTableWrapEl = document.getElementById("timelineTableWrap");
+    const summaryCardsEl = document.getElementById("summaryCards");
+    const activeFormulaEl = document.getElementById("activeFormula");
+    const dayLabelEl = document.getElementById("dayLabel");
+    const template = document.getElementById("productCardTemplate");
+
+    const controls = {
+      recentWeight: document.getElementById("recentWeight"),
+      cumulativeWeight: document.getElementById("cumulativeWeight"),
+      useLogRecent: document.getElementById("useLogRecent"),
+      useLogCumulative: document.getElementById("useLogCumulative"),
+      useDetailedWeights: document.getElementById("useDetailedWeights"),
+      useFreshnessWeight: document.getElementById("useFreshnessWeight"),
+      freshnessWeight: document.getElementById("freshnessWeight"),
+      freshnessWindow: document.getElementById("freshnessWindow"),
+      detailedWeightsBox: document.getElementById("detailedWeightsBox"),
+      freshnessBox: document.getElementById("freshnessBox"),
+      timeOffset: document.getElementById("timeOffset")
+    };
+
+    function expandSeries(base, tailFactor) {
+      const result = [];
+      for (let index = 0; index < 30; index++) {
+        if (index < base.length) {
+          result.push(base[index]);
+        } else {
+          const prev = result[index - 1];
+          const wave = Math.sin((index + 1) / 3) * 2;
+          result.push(Math.max(0, Math.round((prev * tailFactor) + wave)));
+        }
+      }
+      return result;
+    }
+
+    const sampleProducts = [
+      { name: "에센셜 티셔츠", cumulative: 950, age: 2, forecast: expandSeries([40, 30, 26, 18, 15, 13, 8], 0.92) },
+      { name: "쿨링 린넨 셔츠", cumulative: 710, age: 5, forecast: expandSeries([22, 25, 21, 18, 17, 13, 11], 0.95) },
+      { name: "데님 와이드 팬츠", cumulative: 1420, age: 18, forecast: expandSeries([19, 17, 15, 13, 12, 11, 10], 0.97) },
+      { name: "라이트 점퍼", cumulative: 520, age: 1, forecast: expandSeries([18, 16, 12, 9, 7, 5, 4], 0.88) },
+      { name: "스니커즈", cumulative: 2010, age: 27, forecast: expandSeries([25, 21, 19, 18, 14, 10, 9], 0.94) },
+      { name: "미니 크로스백", cumulative: 1240, age: 7, forecast: expandSeries([15, 14, 16, 12, 10, 8, 6], 0.93) }
+    ];
+
+    let products = [];
+    let timelineView = "byProduct";
+
+    function captureFocus() {
+      const active = document.activeElement;
+
+      if (!(active instanceof HTMLInputElement) && !(active instanceof HTMLSelectElement) && !(active instanceof HTMLTextAreaElement)) {
+        return null;
+      }
+
+      const productCard = active.closest(".product-card");
+      if (productCard) {
+        return {
+          scope: "product",
+          productId: productCard.dataset.productId,
+          field: active.dataset.field || "",
+          start: active.selectionStart,
+          end: active.selectionEnd
+        };
+      }
+
+      if (active.id) {
+        return {
+          scope: "global",
+          id: active.id,
+          start: active.selectionStart,
+          end: active.selectionEnd
+        };
+      }
+
+      return null;
+    }
+
+    function restoreFocus(snapshot) {
+      if (!snapshot) {
+        return;
+      }
+
+      let target = null;
+
+      if (snapshot.scope === "product") {
+        const escapedProductId = typeof CSS !== "undefined" && typeof CSS.escape === "function"
+          ? CSS.escape(snapshot.productId)
+          : snapshot.productId;
+        const escapedField = typeof CSS !== "undefined" && typeof CSS.escape === "function"
+          ? CSS.escape(snapshot.field)
+          : snapshot.field;
+        target = document.querySelector(
+          '.product-card[data-product-id="' + escapedProductId + '"] [data-field="' + escapedField + '"]'
+        );
+      } else if (snapshot.scope === "global" && snapshot.id) {
+        target = document.getElementById(snapshot.id);
+      }
+
+      if (!target) {
+        return;
+      }
+
+      target.focus();
+
+      if (typeof snapshot.start === "number" && typeof target.setSelectionRange === "function") {
+        const end = typeof snapshot.end === "number" ? snapshot.end : snapshot.start;
+        target.setSelectionRange(snapshot.start, end);
+      }
+    }
+
+    function createId() {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+      return "product-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+    }
+
+    function makeProduct(index, seed) {
+      return {
+        id: createId(),
+        name: seed?.name || "상품 " + (index + 1),
+        cumulative: seed?.cumulative ?? 0,
+        age: seed?.age ?? 0,
+        forecast: seed?.forecast ? [...seed.forecast] : Array(30).fill(0)
+      };
+    }
+
+    function getDetailWeights() {
+      return Array.from({ length: 7 }, (_, index) => {
+        const input = document.getElementById("dayWeight" + (index + 1));
+        return Number(input.value) || 0;
+      });
+    }
+
+    function getConfig() {
+      return {
+        recentWeight: Number(controls.recentWeight.value) || 0,
+        cumulativeWeight: Number(controls.cumulativeWeight.value) || 0,
+        useLogRecent: controls.useLogRecent.checked,
+        useLogCumulative: controls.useLogCumulative.checked,
+        useDetailedWeights: controls.useDetailedWeights.checked,
+        detailWeights: getDetailWeights(),
+        useFreshnessWeight: controls.useFreshnessWeight.checked,
+        freshnessWeight: Number(controls.freshnessWeight.value) || 0,
+        freshnessWindow: Math.max(1, Number(controls.freshnessWindow.value) || 30),
+        timeOffset: Number(controls.timeOffset.value) || 0
+      };
+    }
+
+    function applyLogScale(value, enabled) {
+      const safeValue = Math.max(0, Number(value) || 0);
+      return enabled ? Math.log1p(safeValue) : safeValue;
+    }
+
+    function getRollingWindow(product, analysisDay) {
+      const endDay = Math.max(1, analysisDay - 1);
+      const startDay = Math.max(1, endDay - 6);
+      const window = [];
+
+      for (let day = startDay; day <= endDay; day += 1) {
+        window.push(product.forecast[day - 1] || 0);
+      }
+
+      return {
+        startDay,
+        endDay,
+        values: window
+      };
+    }
+
+    function calculateRecentComponent(windowValues, config) {
+      const paddedValues = [...windowValues];
+      while (paddedValues.length < 7) {
+        paddedValues.unshift(0);
+      }
+
+      const scaledValues = paddedValues.map((value) => applyLogScale(value, config.useLogRecent));
+
+      if (!config.useDetailedWeights) {
+        return scaledValues.reduce((sum, count) => sum + count, 0) * config.recentWeight;
+      }
+
+      return scaledValues.reduce((sum, count, index) => {
+        return sum + count * config.detailWeights[index];
+      }, 0) * config.recentWeight;
+    }
+
+    function calculateFreshnessComponent(product, analysisDay, config) {
+      if (!config.useFreshnessWeight) {
+        return 0;
+      }
+
+      const currentAge = product.age + analysisDay;
+      const freshnessScore = Math.max(0, config.freshnessWindow - currentAge + 1);
+      return freshnessScore * config.freshnessWeight;
+    }
+
+    function calculateProduct(product, analysisDay, config) {
+      const rolling = getRollingWindow(product, analysisDay);
+      const recentComponent = calculateRecentComponent(rolling.values, config);
+      const scaledCumulative = applyLogScale(product.cumulative, config.useLogCumulative);
+      const cumulativeComponent = scaledCumulative * config.cumulativeWeight;
+      const freshnessComponent = calculateFreshnessComponent(product, analysisDay, config);
+      const currentAge = product.age + analysisDay;
+
+      return {
+        id: product.id,
+        name: product.name,
+        cumulative: product.cumulative,
+        scaledCumulative,
+        currentAge,
+        rollingStart: rolling.startDay,
+        rollingEnd: rolling.endDay,
+        shiftedDaily: rolling.values,
+        recent7Raw: rolling.values.reduce((sum, value) => sum + value, 0),
+        recentComponent,
+        cumulativeComponent,
+        freshnessComponent,
+        score: recentComponent + cumulativeComponent + freshnessComponent
+      };
+    }
+
+    function rankAt(analysisDay, config) {
+      return products
+        .map((product) => calculateProduct(product, analysisDay, config))
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          if (b.recent7Raw !== a.recent7Raw) return b.recent7Raw - a.recent7Raw;
+          return a.name.localeCompare(b.name, "ko");
+        });
+    }
+
+    function updateCardScores() {
+      const config = getConfig();
+      const analysisDay = config.timeOffset;
+      products.forEach((product) => {
+        const card = productListEl.querySelector('.product-card[data-product-id="' + CSS.escape(product.id) + '"]');
+        if (!card) return;
+        const calculated = calculateProduct(product, analysisDay, config);
+        const scoreInfo = card.querySelector(".card-score");
+        if (scoreInfo) {
+          scoreInfo.textContent =
+            "현재 기준일 D+" + analysisDay +
+            " | 집계 구간 D+" + calculated.rollingStart + "~D+" + calculated.rollingEnd +
+            " | 최근7일 합계 " + calculated.recent7Raw +
+            " | 최근7일 점수 " + calculated.recentComponent.toFixed(2);
+        }
+      });
+    }
+
+    function renderProductCards() {
+      productListEl.innerHTML = "";
+
+      if (products.length === 0) {
+        productListEl.innerHTML = '<div class="empty">상품이 없습니다.<br />"샘플 채우기" 또는 "상품 추가"로 시작해보세요.</div>';
+        return;
+      }
+
+      const config = getConfig();
+      const analysisDay = config.timeOffset;
+
+      products.forEach((product, index) => {
+        const fragment = template.content.cloneNode(true);
+        const card = fragment.querySelector(".product-card");
+        const title = fragment.querySelector(".title");
+        const note = fragment.querySelector(".card-note");
+        const scoreInfo = fragment.querySelector(".card-score");
+        const removeBtn = fragment.querySelector(".remove-btn");
+        const dailyGrid = fragment.querySelector(".daily-grid");
+        const calculated = calculateProduct(product, analysisDay, config);
+
+        card.dataset.productId = product.id;
+        title.textContent = "상품 " + (index + 1);
+        scoreInfo.textContent =
+          "현재 기준일 D+" + analysisDay +
+          " | 집계 구간 D+" + calculated.rollingStart + "~D+" + calculated.rollingEnd +
+          " | 최근7일 합계 " + calculated.recent7Raw +
+          " | 최근7일 점수 " + calculated.recentComponent.toFixed(2);
+
+        note.textContent =
+          "입력 기준: D+n의 점수는 직전 최대 7일 롤링 주문 데이터를 사용합니다. 예: D+8은 D+1~D+7, D+9는 D+2~D+8.";
+
+        const nameInput = fragment.querySelector(".input-name");
+        const cumulativeInput = fragment.querySelector(".input-cumulative");
+        const ageInput = fragment.querySelector(".input-age");
+
+        nameInput.dataset.field = "name";
+        cumulativeInput.dataset.field = "cumulative";
+        ageInput.dataset.field = "age";
+
+        nameInput.value = product.name;
+        cumulativeInput.value = product.cumulative;
+        ageInput.value = product.age;
+
+        nameInput.addEventListener("input", (event) => {
+          product.name = event.target.value || "상품 " + (index + 1);
+          updateCardScores();
+          renderResults();
+        });
+
+        cumulativeInput.addEventListener("input", (event) => {
+          const raw = event.target.value;
+          if (raw === "" || raw === "-") return;
+          product.cumulative = Math.max(0, Number(raw) || 0);
+          updateCardScores();
+          renderResults();
+        });
+
+        ageInput.addEventListener("input", (event) => {
+          const raw = event.target.value;
+          if (raw === "" || raw === "-") return;
+          product.age = Math.max(0, Number(raw) || 0);
+          updateCardScores();
+          renderResults();
+        });
+
+        product.forecast.forEach((value, dayIndex) => {
+          const box = document.createElement("div");
+          const label = document.createElement("label");
+          const input = document.createElement("input");
+
+          label.textContent = "D+" + (dayIndex + 1);
+          input.type = "number";
+          input.step = "1";
+          input.min = "0";
+          input.value = value;
+          input.dataset.field = "forecast-" + dayIndex;
+
+          input.addEventListener("input", (event) => {
+            const raw = event.target.value;
+            if (raw === "" || raw === "-") return;
+            product.forecast[dayIndex] = Math.max(0, Number(raw) || 0);
+            updateCardScores();
+            renderResults();
+          });
+
+          box.appendChild(label);
+          box.appendChild(input);
+          dailyGrid.appendChild(box);
+        });
+
+        removeBtn.addEventListener("click", () => {
+          products = products.filter((item) => item.id !== product.id);
+          renderAll();
+        });
+
+        productListEl.appendChild(card);
+      });
+    }
+
+    function renderSummary(ranked, config) {
+      if (ranked.length === 0) {
+        summaryCardsEl.innerHTML = "";
+        activeFormulaEl.textContent = "상품 데이터 필요";
+        return;
+      }
+
+      const top = ranked[0];
+      const mover = ranked.find((item) => item.freshnessComponent > 0) || ranked[0];
+      const formulaParts = [
+        "최근7일 x " + config.recentWeight,
+        "누적 x " + config.cumulativeWeight
+      ];
+
+      if (config.useLogRecent) formulaParts.push("하루판매 log");
+      if (config.useLogCumulative) formulaParts.push("누적 log");
+      if (config.useDetailedWeights) formulaParts.push("7일 상세 가중치 ON");
+      if (config.useFreshnessWeight) formulaParts.push("신규성 ON");
+      activeFormulaEl.textContent = formulaParts.join(" / ");
+
+      summaryCardsEl.innerHTML = [
+        createSummaryCard("현재 1위", top.name),
+        createSummaryCard("1위 점수", top.score.toFixed(2)),
+        createSummaryCard("현재 분석일", "D+" + config.timeOffset),
+        createSummaryCard("신규성 영향 상품", mover.name)
+      ].join("");
+    }
+
+    function createSummaryCard(label, value) {
+      return '<div class="summary-card"><div class="k">' + escapeHtml(label) + '</div><div class="v">' + escapeHtml(value) + "</div></div>";
+    }
+
+    function renderRanking(ranked) {
+      if (ranked.length === 0) {
+        rankingListEl.innerHTML = '<div class="empty">상품을 하나 이상 입력하면 여기서 정렬 결과를 볼 수 있습니다.</div>';
+        return;
+      }
+
+      const config = getConfig();
+
+      rankingListEl.innerHTML = ranked.map((item, index) => {
+        const scaledRecentValues = item.shiftedDaily
+          .map((value) => applyLogScale(value, config.useLogRecent).toFixed(2))
+          .join(" / ");
+
+        return [
+          '<div class="ranking-item">',
+          '  <div class="rank-badge">#' + (index + 1) + "</div>",
+          '  <div>',
+          "    <div><strong>" + escapeHtml(item.name) + "</strong></div>",
+          '    <div class="micro">롤링 구간 D+' + item.rollingStart + "~D+" + item.rollingEnd + " / 최근7일 합계 " + item.recent7Raw + " / 누적 판매량 " + item.cumulative + " / 등록 후 " + item.currentAge + "일</div>",
+          '    <div class="micro">최근 점수 ' + item.recentComponent.toFixed(2) + " + 누적 점수 " + item.cumulativeComponent.toFixed(2) + (item.freshnessComponent ? " + 신규성 점수 " + item.freshnessComponent.toFixed(2) : "") + "</div>",
+          '    <div class="micro">스케일 적용값: 최근7일 [' + scaledRecentValues + "] / 누적 " + item.scaledCumulative.toFixed(2) + "</div>",
+          "  </div>",
+          '  <div class="score">' + item.score.toFixed(2) + '<span class="score-sub">' + item.shiftedDaily.join(" / ") + "</span></div>",
+          "</div>"
+        ].join("");
+      }).join("");
+    }
+
+    function renderTimeline(config) {
+      document.getElementById("tabByProduct").classList.toggle("tab-active", timelineView === "byProduct");
+      document.getElementById("tabByRank").classList.toggle("tab-active", timelineView === "byRank");
+
+      if (products.length === 0) {
+        timelineTableWrapEl.innerHTML = '<div class="empty">상품 데이터를 입력하면 1일~30일 순위 변화표가 생성됩니다.</div>';
+        return;
+      }
+
+      const days = Array.from({ length: 30 }, (_, i) => i + 1);
+      const productColorMap = new Map();
+      products.forEach((p, i) => {
+        productColorMap.set(p.id, PRODUCT_COLORS[i % PRODUCT_COLORS.length]);
+      });
+
+      const ranksByDay = new Map();
+      const byRankPerDay = {};
+
+      days.forEach((day) => {
+        const ranked = rankAt(day, config);
+        byRankPerDay[day] = ranked.map((item) => ({ id: item.id, name: item.name }));
+        ranked.forEach((item, index) => {
+          if (!ranksByDay.has(item.id)) {
+            ranksByDay.set(item.id, { name: item.name, dailyRanks: {} });
+          }
+          ranksByDay.get(item.id).dailyRanks[day] = index + 1;
+        });
+      });
+
+      if (timelineView === "byProduct") {
+        const currentOrder = rankAt(config.timeOffset, config);
+        const rows = currentOrder.map((item) => {
+          const record = ranksByDay.get(item.id);
+          const color = productColorMap.get(item.id);
+          const nameCell = '<td><span class="product-pill" style="background:' + color.bg + ';color:' + color.text + '">' + escapeHtml(record.name) + "</span></td>";
+          const cells = days.map((day) => {
+            const rank = record.dailyRanks[day];
+            const cls = rank <= 3 ? "good" : "";
+            return '<td class="' + cls + '">#' + rank + "</td>";
+          }).join("");
+          return "<tr>" + nameCell + cells + "</tr>";
+        }).join("");
+
+        timelineTableWrapEl.innerHTML = [
+          "<table>",
+          "<thead><tr><th>상품</th>",
+          days.map((day) => "<th>D+" + day + "</th>").join(""),
+          "</tr></thead>",
+          "<tbody>", rows, "</tbody>",
+          "</table>"
+        ].join("");
+
+      } else {
+        const rankCount = products.length;
+        const rows = Array.from({ length: rankCount }, (_, rankIndex) => {
+          const rankLabel = "<td><strong>#" + (rankIndex + 1) + "</strong></td>";
+          const cells = days.map((day) => {
+            const entry = byRankPerDay[day][rankIndex];
+            if (!entry) return "<td>—</td>";
+            const color = productColorMap.get(entry.id);
+            return '<td><span class="product-pill" style="background:' + color.bg + ";color:" + color.text + '">' + escapeHtml(entry.name) + "</span></td>";
+          }).join("");
+          return "<tr>" + rankLabel + cells + "</tr>";
+        }).join("");
+
+        timelineTableWrapEl.innerHTML = [
+          "<table>",
+          "<thead><tr><th>순위</th>",
+          days.map((day) => "<th>D+" + day + "</th>").join(""),
+          "</tr></thead>",
+          "<tbody>", rows, "</tbody>",
+          "</table>"
+        ].join("");
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function syncOptionPanels() {
+      controls.detailedWeightsBox.classList.toggle("hidden", !controls.useDetailedWeights.checked);
+      controls.freshnessBox.classList.toggle("hidden", !controls.useFreshnessWeight.checked);
+      dayLabelEl.textContent = "D+" + (Number(controls.timeOffset.value) || 0);
+    }
+
+    function renderResults() {
+      syncOptionPanels();
+      const config = getConfig();
+      const ranked = rankAt(config.timeOffset, config);
+      renderSummary(ranked, config);
+      renderRanking(ranked);
+      renderTimeline(config);
+    }
+
+    function renderAll() {
+      const focusSnapshot = captureFocus();
+      syncOptionPanels();
+      renderProductCards();
+      renderResults();
+      restoreFocus(focusSnapshot);
+    }
+
+    function addProduct(seed) {
+      if (products.length >= MAX_PRODUCTS) {
+        alert("상품은 최대 30개까지 추가할 수 있습니다.");
+        return;
+      }
+
+      products.push(makeProduct(products.length, seed));
+      renderAll();
+    }
+
+    function loadSampleProducts() {
+      products = sampleProducts.map((item, index) => makeProduct(index, item));
+      renderAll();
+    }
+
+    document.getElementById("tabByProduct").addEventListener("click", () => { timelineView = "byProduct"; renderResults(); });
+    document.getElementById("tabByRank").addEventListener("click", () => { timelineView = "byRank"; renderResults(); });
+
+    const PRESET_KEY = "simulator_presets";
+
+    function loadPresets() {
+      try {
+        const local = JSON.parse(localStorage.getItem(PRESET_KEY)) || [];
+        const localIds = new Set(local.map((p) => p.id));
+        const merged = [...BUNDLED_PRESETS.filter((p) => !localIds.has(p.id)), ...local];
+        return merged;
+      } catch { return [...BUNDLED_PRESETS]; }
+    }
+
+    function savePresets(presets) {
+      localStorage.setItem(PRESET_KEY, JSON.stringify(presets));
+    }
+
+    function configSnapshot() {
+      return {
+        recentWeight: controls.recentWeight.value,
+        cumulativeWeight: controls.cumulativeWeight.value,
+        useLogRecent: controls.useLogRecent.checked,
+        useLogCumulative: controls.useLogCumulative.checked,
+        useDetailedWeights: controls.useDetailedWeights.checked,
+        detailWeights: Array.from({ length: 7 }, (_, i) => document.getElementById("dayWeight" + (i + 1)).value),
+        useFreshnessWeight: controls.useFreshnessWeight.checked,
+        freshnessWeight: controls.freshnessWeight.value,
+        freshnessWindow: controls.freshnessWindow.value
+      };
+    }
+
+    function applyPreset(preset) {
+      controls.recentWeight.value = preset.recentWeight;
+      controls.cumulativeWeight.value = preset.cumulativeWeight;
+      controls.useLogRecent.checked = preset.useLogRecent;
+      controls.useLogCumulative.checked = preset.useLogCumulative;
+      controls.useDetailedWeights.checked = preset.useDetailedWeights;
+      preset.detailWeights.forEach((val, i) => {
+        document.getElementById("dayWeight" + (i + 1)).value = val;
+      });
+      controls.useFreshnessWeight.checked = preset.useFreshnessWeight;
+      controls.freshnessWeight.value = preset.freshnessWeight;
+      controls.freshnessWindow.value = preset.freshnessWindow;
+      renderAll();
+    }
+
+    function renderPresetBar() {
+      const presets = loadPresets();
+      const bar = document.getElementById("presetBar");
+      if (presets.length === 0) {
+        bar.innerHTML = '<span class="preset-empty">저장된 설정이 없습니다.</span>';
+        return;
+      }
+      bar.innerHTML = presets.map((p) =>
+        '<span class="preset-chip" data-id="' + p.id + '">' +
+        escapeHtml(p.name) +
+        '<button class="del" data-id="' + p.id + '" type="button" title="삭제">×</button>' +
+        '</span>'
+      ).join("");
+
+      bar.querySelectorAll(".preset-chip").forEach((chip) => {
+        chip.addEventListener("click", (e) => {
+          if (e.target.classList.contains("del")) return;
+          const preset = loadPresets().find((p) => p.id === chip.dataset.id);
+          if (preset) applyPreset(preset.config);
+        });
+      });
+
+      bar.querySelectorAll(".del").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const updated = loadPresets().filter((p) => p.id !== btn.dataset.id);
+          savePresets(updated);
+          renderPresetBar();
+        });
+      });
+    }
+
+    document.getElementById("savePreset").addEventListener("click", () => {
+      const name = window.prompt("설정 이름을 입력하세요");
+      if (!name || !name.trim()) return;
+      const presets = loadPresets();
+      presets.push({ id: Date.now().toString(), name: name.trim(), config: configSnapshot() });
+      savePresets(presets);
+      renderPresetBar();
+    });
+
+    document.getElementById("exportHtml").addEventListener("click", () => {
+      const presets = loadPresets();
+      const html = document.documentElement.outerHTML.replace(
+        /const BUNDLED_PRESETS = \[.*?\];(\s*\/\* __BUNDLED_PRESETS__ \*\/)/,
+        "const BUNDLED_PRESETS = " + JSON.stringify(presets) + "; /* __BUNDLED_PRESETS__ */"
+      );
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "simulator.html";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    document.getElementById("exportXlsx").addEventListener("click", () => {
+      const config = getConfig();
+      const days = Array.from({ length: 30 }, (_, i) => i + 1);
+      const wb = XLSX.utils.book_new();
+
+      // ── Sheet 1: 설정값 ──────────────────────────────
+      const detailWeights = getDetailWeights();
+      const settingsRows = [
+        ["항목", "값"],
+        ["── 점수 규칙 ──", ""],
+        ["최근 7일 주문수 가중치", config.recentWeight],
+        ["누적 판매량 가중치", config.cumulativeWeight],
+        ["하루 판매량 로그스케일", config.useLogRecent ? "ON" : "OFF"],
+        ["누적판매량 로그스케일", config.useLogCumulative ? "ON" : "OFF"],
+        ["7일 상세 가중치 사용", config.useDetailedWeights ? "ON" : "OFF"],
+        ...detailWeights.map((w, i) => [`  ${i + 1}일 전 가중치`, w]),
+        ["신규성 가중치 사용", config.useFreshnessWeight ? "ON" : "OFF"],
+        ["신규성 가중치", config.freshnessWeight],
+        ["신규성 반영 기간(일)", config.freshnessWindow],
+        ["── 시간 변화 ──", ""],
+        ["시뮬레이션 기준일", "D+" + config.timeOffset],
+      ];
+      const wsSettings = XLSX.utils.aoa_to_sheet(settingsRows);
+      wsSettings["!cols"] = [{ wch: 24 }, { wch: 14 }];
+      XLSX.utils.book_append_sheet(wb, wsSettings, "설정값");
+
+      // 공통: 일별 순위 계산
+      const ranksByDay = new Map();
+      const byRankPerDay = {};
+      days.forEach((day) => {
+        const ranked = rankAt(day, config);
+        byRankPerDay[day] = ranked.map((item) => item.name);
+        ranked.forEach((item, idx) => {
+          if (!ranksByDay.has(item.id)) ranksByDay.set(item.id, { name: item.name, dailyRanks: {} });
+          ranksByDay.get(item.id).dailyRanks[day] = idx + 1;
+        });
+      });
+      const currentOrder = rankAt(config.timeOffset, config);
+      const dayHeaders = days.map((d) => "D+" + d);
+
+      // ── Sheet 2: 상품별 순위 ────────────────────────
+      const byProductHeader = ["상품명", ...dayHeaders];
+      const byProductRows = currentOrder.map((item) => {
+        const rec = ranksByDay.get(item.id);
+        return [rec.name, ...days.map((d) => rec.dailyRanks[d])];
+      });
+      const wsByProduct = XLSX.utils.aoa_to_sheet([byProductHeader, ...byProductRows]);
+      wsByProduct["!cols"] = [{ wch: 18 }, ...days.map(() => ({ wch: 7 }))];
+      XLSX.utils.book_append_sheet(wb, wsByProduct, "상품별 순위");
+
+      // ── Sheet 3: 순위별 상품 ────────────────────────
+      const byRankHeader = ["순위", ...dayHeaders];
+      const byRankRows = currentOrder.map((_, rankIdx) => [
+        "#" + (rankIdx + 1),
+        ...days.map((d) => byRankPerDay[d][rankIdx] || "")
+      ]);
+      const wsByRank = XLSX.utils.aoa_to_sheet([byRankHeader, ...byRankRows]);
+      wsByRank["!cols"] = [{ wch: 6 }, ...days.map(() => ({ wch: 14 }))];
+      XLSX.utils.book_append_sheet(wb, wsByRank, "순위별 상품");
+
+      XLSX.writeFile(wb, "simulator_result.xlsx");
+    });
+
+    document.getElementById("importExcel").addEventListener("click", () => {
+      document.getElementById("excelFileInput").value = "";
+      document.getElementById("excelFileInput").click();
+    });
+
+    document.getElementById("excelFileInput").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const workbook = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: 0 });
+
+          const dataRows = rows.filter((row) => {
+            const name = String(row[0] || "").trim();
+            return name !== "" && name !== "상품명" && !/^d\+?\d/i.test(name);
+          });
+
+          if (dataRows.length === 0) {
+            alert("임포트할 상품 데이터가 없습니다.\n형식: 상품명 | 누적 판매량 | 등록 후 경과일 | D+1 ~ D+30");
+            return;
+          }
+
+          const imported = dataRows.slice(0, MAX_PRODUCTS).map((row, index) => {
+            const forecast = Array.from({ length: 30 }, (_, i) => Math.max(0, Number(row[3 + i]) || 0));
+            return makeProduct(index, {
+              name: String(row[0] || "").trim() || "상품 " + (index + 1),
+              cumulative: Math.max(0, Number(row[1]) || 0),
+              age: Math.max(0, Number(row[2]) || 0),
+              forecast
+            });
+          });
+
+          if (products.length > 0) {
+            const merge = window.confirm(
+              "기존 상품 " + products.length + "개가 있습니다.\n\n확인: 기존 상품 유지하고 추가\n취소: 기존 상품 지우고 교체"
+            );
+            products = merge ? [...products, ...imported].slice(0, MAX_PRODUCTS) : imported;
+          } else {
+            products = imported;
+          }
+
+          renderAll();
+          alert(imported.length + "개 상품을 임포트했습니다.");
+        } catch (err) {
+          alert("파일을 읽는 중 오류가 발생했습니다.\n" + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    document.getElementById("addProduct").addEventListener("click", () => addProduct());
+    document.getElementById("loadSample").addEventListener("click", loadSampleProducts);
+
+    [
+      controls.recentWeight,
+      controls.cumulativeWeight,
+      controls.useLogRecent,
+      controls.useLogCumulative,
+      controls.useDetailedWeights,
+      controls.useFreshnessWeight,
+      controls.freshnessWeight,
+      controls.freshnessWindow,
+      controls.timeOffset,
+      ...Array.from({ length: 7 }, (_, i) => document.getElementById("dayWeight" + (i + 1)))
+    ].forEach((element) => {
+      element.addEventListener("input", renderAll);
+      element.addEventListener("change", renderAll);
+    });
+
+    loadSampleProducts();
+  </script>
 </body>
 </html>
