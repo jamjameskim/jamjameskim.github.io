@@ -550,11 +550,11 @@
 
           <div class="grid-2">
             <label class="toggle">
-              <input id="useLogRecent" type="checkbox" />
+              <input id="useLogRecent" type="checkbox" checked />
               <span>하루 판매량 로그스케일 적용</span>
             </label>
             <label class="toggle">
-              <input id="useLogCumulative" type="checkbox" />
+              <input id="useLogCumulative" type="checkbox" checked />
               <span>누적판매량 로그스케일 적용</span>
             </label>
           </div>
@@ -575,45 +575,62 @@
             </div>
             <div>
               <label for="dayWeight2">2일 전</label>
-              <input id="dayWeight2" type="number" step="0.1" value="0.8" />
+              <input id="dayWeight2" type="number" step="0.1" value="0.9" />
             </div>
             <div>
               <label for="dayWeight3">3일 전</label>
-              <input id="dayWeight3" type="number" step="0.1" value="0.6" />
+              <input id="dayWeight3" type="number" step="0.1" value="0.8" />
             </div>
             <div>
               <label for="dayWeight4">4일 전</label>
-              <input id="dayWeight4" type="number" step="0.1" value="0.45" />
+              <input id="dayWeight4" type="number" step="0.1" value="0.7" />
             </div>
             <div>
               <label for="dayWeight5">5일 전</label>
-              <input id="dayWeight5" type="number" step="0.1" value="0.3" />
+              <input id="dayWeight5" type="number" step="0.1" value="0.6" />
             </div>
             <div>
               <label for="dayWeight6">6일 전</label>
-              <input id="dayWeight6" type="number" step="0.1" value="0.2" />
+              <input id="dayWeight6" type="number" step="0.1" value="0.5" />
             </div>
             <div>
               <label for="dayWeight7">7일 전</label>
-              <input id="dayWeight7" type="number" step="0.1" value="0.1" />
+              <input id="dayWeight7" type="number" step="0.1" value="0.4" />
             </div>
           </div>
 
           <label class="toggle">
-            <input id="useFreshnessWeight" type="checkbox" />
+            <input id="useFreshnessWeight" type="checkbox" checked />
             <span>최근 등록일 가까운 순 가중치 사용</span>
           </label>
 
           <div id="freshnessBox" class="grid-2 hidden">
             <div>
               <label for="freshnessWeight">신규성 가중치</label>
-              <input id="freshnessWeight" type="number" step="0.1" value="0.25" />
+              <input id="freshnessWeight" type="number" step="0.1" value="0.15" />
             </div>
             <div>
               <label for="freshnessWindow">신규성 반영 기간(일)</label>
               <input id="freshnessWindow" type="number" step="1" min="1" max="90" value="30" />
             </div>
           </div>
+        </section>
+
+        <section class="section">
+          <div class="header-row">
+            <div>
+              <h3>상품 입력</h3>
+              <p class="subtext">최대 60개까지 추가할 수 있습니다.</p>
+            </div>
+            <div class="header-row">
+              <button id="addProduct" class="btn-primary" type="button">상품 추가</button>
+              <button id="importExcel" class="btn-secondary" type="button">엑셀 임포트</button>
+              <button id="loadSample" class="btn-secondary" type="button">샘플 채우기</button>
+              <input id="excelFileInput" type="file" accept=".xlsx,.xls,.csv" style="display:none" />
+            </div>
+          </div>
+
+          <div id="productList" class="product-list"></div>
         </section>
 
         <section class="section">
@@ -627,29 +644,12 @@
 
           <div>
             <label for="timeOffset">시뮬레이션 기준일</label>
-            <input id="timeOffset" type="range" min="1" max="30" value="8" />
+            <input id="timeOffset" type="range" min="1" max="30" value="30" />
           </div>
 
           <div class="micro">
             기준: D+8은 D+1~D+7, D+9는 D+2~D+8, D+30은 D+23~D+29 주문 데이터를 사용합니다.
           </div>
-        </section>
-
-        <section class="section">
-          <div class="header-row">
-            <div>
-              <h3>상품 입력</h3>
-              <p class="subtext">최대 30개까지 추가할 수 있습니다.</p>
-            </div>
-            <div class="header-row">
-              <button id="addProduct" class="btn-primary" type="button">상품 추가</button>
-              <button id="importExcel" class="btn-secondary" type="button">엑셀 임포트</button>
-              <button id="loadSample" class="btn-secondary" type="button">샘플 채우기</button>
-              <input id="excelFileInput" type="file" accept=".xlsx,.xls,.csv" style="display:none" />
-            </div>
-          </div>
-
-          <div id="productList" class="product-list"></div>
         </section>
       </aside>
 
@@ -720,7 +720,7 @@
   </template>
 
   <script>
-    const MAX_PRODUCTS = 30;
+    const MAX_PRODUCTS = 60;
     const BUNDLED_PRESETS = []; /* __BUNDLED_PRESETS__ */
     const PRODUCT_COLORS = [
       { bg: "#fde8d8", text: "#be5b31" },
@@ -1255,7 +1255,7 @@
 
     function addProduct(seed) {
       if (products.length >= MAX_PRODUCTS) {
-        alert("상품은 최대 30개까지 추가할 수 있습니다.");
+        alert("상품은 최대 60개까지 추가할 수 있습니다.");
         return;
       }
 
