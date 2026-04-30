@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>구매기록 랭킹 변동 시뮬레이터</title>
+  <style>
+    :root {
+      --bg: #f4efe7;
+      --panel: rgba(255, 251, 245, 0.88);
+      --panel-strong: #fffdf8;
+      --line: rgba(89, 63, 38, 0.14);
+      --text: #241a12;
+      --muted: #6f5d4f;
+      --accent: #b65d37;
+      --accent-soft: rgba(182, 93, 55, 0.14);
+      --accent-2: #2d7a66;
+      --danger: #b44343;
+      --shadow: 0 18px 48px rgba(69, 49, 31, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Pretendard", "SUIT", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 30%),
+        linear-gradient(180deg, #f7f3eb 0%, #e9dfd1 100%);
+    }
+
+    .page {
+      max-width: 1580px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+
+    .hero,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .hero {
+      padding: 28px;
+      margin-bottom: 18px;
+      background:
+        linear-gradient(135deg, rgba(255, 251, 245, 0.96), rgba(241, 230, 216, 0.92)),
+        #fff;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      max-width: 980px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .hero-links {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hero-link,
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.16s ease, opacity 0.16s ease, background 0.16s ease;
+    }
+
+    button:hover,
+    .hero-link:hover {
+      transform: translateY(-1px);
+    }
+
+    .hero-link {
+      background: rgba(182, 93, 55, 0.12);
+      color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #efe3d7;
+      color: var(--text);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 440px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 20px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .section {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+    }
+
+    .header-row,
+    .summary-cards,
+    .legend {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    h2,
+    h3,
+    h4 {
+      margin: 0;
+      letter-spacing: -0.03em;
+    }
+
+    .subtext,
+    .micro {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .grid-2,
+    .grid-3 {
+      display: grid;
+      gap: 10px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="date"],
+    input[type="number"],
+    select,
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(89, 63, 38, 0.16);
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(182, 93, 55, 0.12);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .formula {
+      padding: 14px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(182, 93, 55, 0.08), rgba(182, 93, 55, 0.02));
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #f2e7db;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .status {
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(45, 122, 102, 0.18);
+      background: rgba(45, 122, 102, 0.08);
+      color: var(--accent-2);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .status.error {
+      border-color: rgba(180, 67, 67, 0.2);
+      background: rgba(180, 67, 67, 0.08);
+      color: var(--danger);
+    }
+
+    .summary-cards {
+      align-items: stretch;
+    }
+
+    .summary-card {
+      flex: 1;
+      min-width: 150px;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(247,240,231,0.92));
+    }
+
+    .summary-card .k {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .summary-card .v {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .ranking-list,
+    .movement-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .ranking-item,
+    .movement-item {
+      display: grid;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .ranking-item {
+      grid-template-columns: 64px minmax(0, 1fr) 180px;
+    }
+
+    .movement-item {
+      grid-template-columns: minmax(0, 1fr) 120px 120px;
+    }
+
+    .rank-badge {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .title {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+
+    .score {
+      text-align: right;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .score-sub {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .good {
+      color: var(--accent-2);
+      font-weight: 900;
+    }
+
+    .bad {
+      color: var(--danger);
+      font-weight: 900;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(89, 63, 38, 0.1);
+      font-size: 13px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    th:first-child,
+    td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      text-align: left;
+      background: #fffaf3;
+      font-weight: 900;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #fffaf3;
+    }
+
+    .empty {
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed rgba(89, 63, 38, 0.2);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.7);
+      line-height: 1.7;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1220px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 16px 12px 34px;
+      }
+
+      .hero,
+      .panel {
+        padding: 18px;
+      }
+
+      .hero h1 {
+        font-size: 28px;
+      }
+
+      .grid-2,
+      .grid-3,
+      .ranking-item,
+      .movement-item {
+        grid-template-columns: 1fr;
+      }
+
+      .score {
+        text-align: left;
+      }
+    }
+  </style>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>구매기록 랭킹 변동 시뮬레이터</h1>
+      <p>
+        상품 시트와 구매 기록 시트가 들어있는 엑셀을 업로드하면, 일자별 점수와 순위 변동을 계산합니다.
+        점수 공식은 `(최근 30일 구매건수 × 1.0) + (전체 구매건수 × 0.3) - (현재일 - 마지막 구매일) × 0.03`이며, 음수는 0으로 고정합니다.
+      </p>
+      <div class="hero-links">
+        <a class="hero-link" href="./index.html">대문으로</a>
+        <a class="hero-link" href="./home-fresh-simulator.html">기존 시뮬레이터 보기</a>
+        <button id="loadSample" class="btn-secondary" type="button">샘플 데이터 불러오기</button>
+        <button id="downloadTemplate" class="btn-secondary" type="button">템플릿 다운로드</button>
+      </div>
+    </section>
+
+    <div class="layout">
+      <aside class="panel stack">
+        <section class="section">
+          <div class="header-row">
+            <div>
+              <h2>엑셀 업로드</h2>
+              <p class="subtext">권장 구조는 `products` 시트와 `purchases` 시트 2개입니다.</p>
+            </div>
+            <button id="importExcel" class="btn-primary" type="button">엑셀 불러오기</button>
+            <input id="excelFileInput" type="file" accept=".xlsx,.xls,.csv" hidden />
+          </div>
+
+          <div class="formula">
+            <strong>권장 컬럼명</strong><br />
+            `products`: `product_id`, `product_name`<br />
+            `purchases`: `purchase_date`, `product_id` 또는 `product_name`
+          </div>
+
+          <div id="statusBox" class="status">
+            아직 데이터가 없습니다. 샘플 데이터를 불러오거나 엑셀 파일을 선택해 주세요.
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="header-row">
+            <div>
+              <h3>시트 매핑</h3>
+              <p class="subtext">자동 인식 후 필요하면 직접 바꿀 수 있습니다.</p>
+            </div>
+            <button id="applyMapping" class="btn-secondary" type="button">매핑 적용</button>
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label for="productsSheet">상품 시트</label>
+              <select id="productsSheet"></select>
+            </div>
+            <div>
+              <label for="purchasesSheet">구매기록 시트</label>
+              <select id="purchasesSheet"></select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label for="productIdColumn">상품 ID 컬럼</label>
+              <select id="productIdColumn"></select>
+            </div>
+            <div>
+              <label for="productNameColumn">상품명 컬럼</label>
+              <select id="productNameColumn"></select>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div>
+              <label for="purchaseDateColumn">구매일 컬럼</label>
+              <select id="purchaseDateColumn"></select>
+            </div>
+            <div>
+              <label for="purchaseProductIdColumn">구매기록 상품 ID 컬럼</label>
+              <select id="purchaseProductIdColumn"></select>
+            </div>
+            <div>
+              <label for="purchaseProductNameColumn">구매기록 상품명 컬럼</label>
+              <select id="purchaseProductNameColumn"></select>
+            </div>
+          </div>
+
+          <div>
+            <label for="dateFormatHint">날짜 파싱 힌트</label>
+            <input id="dateFormatHint" type="text" value="YYYY-MM-DD 또는 엑셀 날짜" />
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="header-row">
+            <div>
+              <h3>시뮬레이션 기간</h3>
+              <p class="subtext">기간 전체의 순위 변동을 계산하고, 선택한 날짜의 상세 랭킹을 보여줍니다.</p>
+            </div>
+            <span id="activeDatePill" class="pill">기준일 없음</span>
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label for="startDate">시작일</label>
+              <input id="startDate" type="date" />
+            </div>
+            <div>
+              <label for="endDate">종료일</label>
+              <input id="endDate" type="date" />
+            </div>
+          </div>
+
+          <div>
+            <label for="selectedDay">상세 확인 기준일</label>
+            <input id="selectedDay" type="range" min="0" max="0" value="0" />
+          </div>
+
+          <div class="legend">
+            <span class="pill">최근 30일 구매건수 가중치 1.0</span>
+            <span class="pill">전체 구매건수 가중치 0.3</span>
+            <span class="pill">경과일 감점 0.03</span>
+          </div>
+        </section>
+      </aside>
+
+      <main class="stack">
+        <section class="panel stack">
+          <div class="header-row">
+            <div>
+              <h2>선택 날짜 랭킹</h2>
+              <p class="subtext">동점 처리: 마지막 구매일 내림차순 → 구매건수 내림차순 → 상품명 오름차순</p>
+            </div>
+            <button id="exportXlsx" class="btn-secondary" type="button">결과 엑셀 다운로드</button>
+          </div>
+
+          <div id="summaryCards" class="summary-cards"></div>
+          <div id="rankingList" class="ranking-list"></div>
+        </section>
+
+        <section class="panel stack">
+          <div class="header-row">
+            <div>
+              <h2>기간 내 순위 변동</h2>
+              <p class="subtext">행은 상품, 열은 날짜이며 각 셀은 해당 날짜의 순위입니다.</p>
+            </div>
+            <div id="tableMeta" class="pill">데이터 없음</div>
+          </div>
+          <div id="timelineWrap" class="table-wrap"></div>
+        </section>
+
+        <section class="panel stack">
+          <div class="header-row">
+            <div>
+              <h2>기간 기준 상승/하락</h2>
+              <p class="subtext">시작일 대비 종료일의 순위 차이를 요약합니다.</p>
+            </div>
+          </div>
+          <div id="movementList" class="movement-list"></div>
+          <div class="footer-note">
+            구매기록에 상품 ID와 상품명이 둘 다 있으면 ID를 우선 사용합니다. 각 행은 수량과 무관하게 무조건 구매 1건으로 처리합니다.
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const SCORE_WEIGHTS = {
+      recent30: 1.0,
+      total: 0.3,
+      recencyPenalty: 0.03
+    };
+
+    const state = {
+      workbookData: {},
+      sheetNames: [],
+      products: [],
+      purchases: [],
+      simulations: [],
+      selectedIndex: 0
+    };
+
+    const els = {
+      statusBox: document.getElementById("statusBox"),
+      importExcel: document.getElementById("importExcel"),
+      excelFileInput: document.getElementById("excelFileInput"),
+      loadSample: document.getElementById("loadSample"),
+      downloadTemplate: document.getElementById("downloadTemplate"),
+      applyMapping: document.getElementById("applyMapping"),
+      productsSheet: document.getElementById("productsSheet"),
+      purchasesSheet: document.getElementById("purchasesSheet"),
+      productIdColumn: document.getElementById("productIdColumn"),
+      productNameColumn: document.getElementById("productNameColumn"),
+      purchaseDateColumn: document.getElementById("purchaseDateColumn"),
+      purchaseProductIdColumn: document.getElementById("purchaseProductIdColumn"),
+      purchaseProductNameColumn: document.getElementById("purchaseProductNameColumn"),
+      startDate: document.getElementById("startDate"),
+      endDate: document.getElementById("endDate"),
+      selectedDay: document.getElementById("selectedDay"),
+      activeDatePill: document.getElementById("activeDatePill"),
+      summaryCards: document.getElementById("summaryCards"),
+      rankingList: document.getElementById("rankingList"),
+      timelineWrap: document.getElementById("timelineWrap"),
+      movementList: document.getElementById("movementList"),
+      tableMeta: document.getElementById("tableMeta"),
+      exportXlsx: document.getElementById("exportXlsx")
+    };
+
+    const sampleWorkbook = {
+      products: [
+        { product_id: "P-001", product_name: "오가닉 두부" },
+        { product_id: "P-002", product_name: "현미 누룽지칩" },
+        { product_id: "P-003", product_name: "한입 군고구마" },
+        { product_id: "P-004", product_name: "저당 그래놀라" }
+      ],
+      purchases: [
+        { purchase_date: "2026-03-01", product_id: "P-001", quantity: 1 },
+        { purchase_date: "2026-03-05", product_id: "P-002", quantity: 2 },
+        { purchase_date: "2026-03-06", product_id: "P-001", quantity: 1 },
+        { purchase_date: "2026-03-07", product_id: "P-003", quantity: 1 },
+        { purchase_date: "2026-03-09", product_id: "P-001", quantity: 1 },
+        { purchase_date: "2026-03-10", product_id: "P-004", quantity: 1 },
+        { purchase_date: "2026-03-11", product_id: "P-002", quantity: 1 },
+        { purchase_date: "2026-03-14", product_id: "P-003", quantity: 3 },
+        { purchase_date: "2026-03-18", product_id: "P-001", quantity: 2 },
+        { purchase_date: "2026-03-19", product_id: "P-004", quantity: 1 },
+        { purchase_date: "2026-03-21", product_id: "P-003", quantity: 1 },
+        { purchase_date: "2026-03-25", product_id: "P-002", quantity: 2 },
+        { purchase_date: "2026-03-26", product_id: "P-001", quantity: 1 },
+        { purchase_date: "2026-03-28", product_id: "P-004", quantity: 2 },
+        { purchase_date: "2026-03-30", product_id: "P-003", quantity: 1 },
+        { purchase_date: "2026-04-02", product_id: "P-001", quantity: 1 },
+        { purchase_date: "2026-04-03", product_id: "P-002", quantity: 1 },
+        { purchase_date: "2026-04-06", product_id: "P-003", quantity: 1 },
+        { purchase_date: "2026-04-07", product_id: "P-004", quantity: 2 },
+        { purchase_date: "2026-04-09", product_id: "P-001", quantity: 1 }
+      ]
+    };
+
+    function formatDate(date) {
+      return date.toISOString().slice(0, 10);
+    }
+
+    function parseLooseDate(value) {
+      if (value == null || value === "") {
+        return null;
+      }
+
+      if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return normalizeDate(value);
+      }
+
+      if (typeof value === "number") {
+        const parsed = XLSX.SSF.parse_date_code(value);
+        if (!parsed) {
+          return null;
+        }
+        return new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d));
+      }
+
+      const text = String(value).trim();
+      if (!text) {
+        return null;
+      }
+
+      const normalized = text.replace(/\./g, "-").replace(/\//g, "-");
+      const direct = new Date(normalized);
+      if (!Number.isNaN(direct.getTime())) {
+        return normalizeDate(direct);
+      }
+
+      const match = normalized.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (!match) {
+        return null;
+      }
+      return new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+    }
+
+    function normalizeDate(date) {
+      return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    }
+
+    function daysBetween(later, earlier) {
+      return Math.round((normalizeDate(later) - normalizeDate(earlier)) / DAY_MS);
+    }
+
+    function clampScore(value) {
+      return Math.max(0, Number(value.toFixed(4)));
+    }
+
+    function setStatus(message, isError = false) {
+      els.statusBox.textContent = message;
+      els.statusBox.classList.toggle("error", Boolean(isError));
+    }
+
+    function makeOptionList(selectEl, values, preferred) {
+      selectEl.innerHTML = "";
+      values.forEach((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value || "(없음)";
+        if (preferred && value === preferred) {
+          option.selected = true;
+        }
+        selectEl.appendChild(option);
+      });
+      if (!values.length) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "(없음)";
+        selectEl.appendChild(option);
+      }
+    }
+
+    function detectColumn(columns, keywords) {
+      return columns.find((column) => {
+        const key = String(column).toLowerCase().replace(/\s+/g, "");
+        return keywords.some((keyword) => key.includes(keyword));
+      }) || "";
+    }
+
+    function detectSheet(sheetNames, preferredWords, fallbackIndex) {
+      const found = sheetNames.find((name) => {
+        const key = name.toLowerCase();
+        return preferredWords.some((word) => key.includes(word));
+      });
+      return found || sheetNames[fallbackIndex] || "";
+    }
+
+    function updateSheetSelectors() {
+      makeOptionList(els.productsSheet, state.sheetNames, detectSheet(state.sheetNames, ["product", "상품"], 0));
+      makeOptionList(els.purchasesSheet, state.sheetNames, detectSheet(state.sheetNames, ["purchase", "order", "구매", "주문"], 1));
+      updateColumnSelectors();
+    }
+
+    function getSheetRows(sheetName) {
+      return state.workbookData[sheetName] || [];
+    }
+
+    function getColumns(rows) {
+      const set = new Set();
+      rows.forEach((row) => {
+        Object.keys(row || {}).forEach((key) => set.add(key));
+      });
+      return Array.from(set);
+    }
+
+    function updateColumnSelectors() {
+      const productColumns = getColumns(getSheetRows(els.productsSheet.value));
+      const purchaseColumns = getColumns(getSheetRows(els.purchasesSheet.value));
+      makeOptionList(els.productIdColumn, ["", ...productColumns], detectColumn(productColumns, ["product_id", "상품id", "id", "sku"]));
+      makeOptionList(els.productNameColumn, ["", ...productColumns], detectColumn(productColumns, ["product_name", "상품명", "name"]));
+      makeOptionList(els.purchaseDateColumn, ["", ...purchaseColumns], detectColumn(purchaseColumns, ["purchase_date", "order_date", "구매일", "주문일", "date"]));
+      makeOptionList(els.purchaseProductIdColumn, ["", ...purchaseColumns], detectColumn(purchaseColumns, ["product_id", "상품id", "id", "sku"]));
+      makeOptionList(els.purchaseProductNameColumn, ["", ...purchaseColumns], detectColumn(purchaseColumns, ["product_name", "상품명", "name"]));
+    }
+
+    function readWorkbook(workbook) {
+      const workbookData = {};
+      workbook.SheetNames.forEach((sheetName) => {
+        workbookData[sheetName] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
+          defval: "",
+          raw: true
+        });
+      });
+      state.workbookData = workbookData;
+      state.sheetNames = workbook.SheetNames;
+      updateSheetSelectors();
+      setStatus("엑셀을 읽었습니다. 시트와 컬럼 매핑을 확인한 뒤 적용해 주세요.");
+    }
+
+    function normalizeProducts(productRows, productIdColumn, productNameColumn) {
+      const map = new Map();
+      const aliasMap = new Map();
+      productRows.forEach((row, index) => {
+        const id = String(row[productIdColumn] || "").trim();
+        const name = String(row[productNameColumn] || "").trim();
+        const key = id || name;
+        if (!key) {
+          return;
+        }
+        if (!map.has(key)) {
+          map.set(key, {
+            productKey: key,
+            productId: id,
+            productName: name || "상품 " + (index + 1)
+          });
+        }
+
+        if (id) {
+          aliasMap.set(id, key);
+        }
+        if (name) {
+          aliasMap.set(name, key);
+        }
+      });
+      return { map, aliasMap };
+    }
+
+    function buildDataset() {
+      const productRows = getSheetRows(els.productsSheet.value);
+      const purchaseRows = getSheetRows(els.purchasesSheet.value);
+      const { map: productMap, aliasMap } = normalizeProducts(
+        productRows,
+        els.productIdColumn.value,
+        els.productNameColumn.value
+      );
+      const purchases = [];
+
+      purchaseRows.forEach((row) => {
+        const date = parseLooseDate(row[els.purchaseDateColumn.value]);
+        if (!date) {
+          return;
+        }
+
+        const rawId = String(row[els.purchaseProductIdColumn.value] || "").trim();
+        const rawName = String(row[els.purchaseProductNameColumn.value] || "").trim();
+        const key = aliasMap.get(rawId) || aliasMap.get(rawName) || rawId || rawName;
+        if (!key) {
+          return;
+        }
+
+        if (!productMap.has(key)) {
+          productMap.set(key, {
+            productKey: key,
+            productId: rawId,
+            productName: rawName || rawId || key
+          });
+          if (rawId) {
+            aliasMap.set(rawId, key);
+          }
+          if (rawName) {
+            aliasMap.set(rawName, key);
+          }
+        } else {
+          const product = productMap.get(key);
+          if (!product.productName && rawName) {
+            product.productName = rawName;
+          }
+          if (!product.productId && rawId) {
+            product.productId = rawId;
+          }
+        }
+
+        purchases.push({
+          productKey: key,
+          date
+        });
+      });
+
+      return {
+        products: Array.from(productMap.values()),
+        purchases: purchases.sort((a, b) => a.date - b.date)
+      };
+    }
+
+    function getDateRange(purchases) {
+      if (!purchases.length) {
+        return null;
+      }
+      return {
+        min: purchases[0].date,
+        max: purchases[purchases.length - 1].date
+      };
+    }
+
+    function buildDateSeries(startDate, endDate) {
+      const result = [];
+      let cursor = normalizeDate(startDate);
+      const end = normalizeDate(endDate);
+      while (cursor <= end) {
+        result.push(cursor);
+        cursor = new Date(cursor.getTime() + DAY_MS);
+      }
+      return result;
+    }
+
+    function summarizeOnDate(product, purchasesByProduct, date) {
+      const rows = purchasesByProduct.get(product.productKey) || [];
+      let totalCount = 0;
+      let recent30Count = 0;
+      let lastPurchaseDate = null;
+
+      rows.forEach((purchase) => {
+        if (purchase.date > date) {
+          return;
+        }
+        totalCount += 1;
+        lastPurchaseDate = purchase.date;
+        const diff = daysBetween(date, purchase.date);
+        if (diff >= 0 && diff < 30) {
+          recent30Count += 1;
+        }
+      });
+
+      const daysSinceLast = lastPurchaseDate ? daysBetween(date, lastPurchaseDate) : 9999;
+      const rawScore =
+        (recent30Count * SCORE_WEIGHTS.recent30) +
+        (totalCount * SCORE_WEIGHTS.total) -
+        (daysSinceLast * SCORE_WEIGHTS.recencyPenalty);
+
+      return {
+        ...product,
+        date,
+        totalCount,
+        recent30Count,
+        lastPurchaseDate,
+        daysSinceLast: lastPurchaseDate ? daysSinceLast : null,
+        score: clampScore(rawScore)
+      };
+    }
+
+    function compareRank(a, b) {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+
+      const aLast = a.lastPurchaseDate ? a.lastPurchaseDate.getTime() : -Infinity;
+      const bLast = b.lastPurchaseDate ? b.lastPurchaseDate.getTime() : -Infinity;
+      if (bLast !== aLast) {
+        return bLast - aLast;
+      }
+
+      if (b.totalCount !== a.totalCount) {
+        return b.totalCount - a.totalCount;
+      }
+
+      return a.productName.localeCompare(b.productName, "ko");
+    }
+
+    function simulate(products, purchases, startDate, endDate) {
+      const purchasesByProduct = new Map();
+      products.forEach((product) => purchasesByProduct.set(product.productKey, []));
+      purchases.forEach((purchase) => {
+        if (!purchasesByProduct.has(purchase.productKey)) {
+          purchasesByProduct.set(purchase.productKey, []);
+        }
+        purchasesByProduct.get(purchase.productKey).push(purchase);
+      });
+
+      return buildDateSeries(startDate, endDate).map((date) => {
+        const ranking = products
+          .map((product) => summarizeOnDate(product, purchasesByProduct, date))
+          .sort(compareRank)
+          .map((item, index) => ({ ...item, rank: index + 1 }));
+
+        return { date, ranking };
+      });
+    }
+
+    function renderSummaryCards(dayResult) {
+      if (!dayResult) {
+        els.summaryCards.innerHTML = "";
+        return;
+      }
+
+      const scoredProducts = dayResult.ranking.filter((item) => item.score > 0);
+      const top = dayResult.ranking[0];
+      const totalPurchases = dayResult.ranking.reduce((sum, item) => sum + item.totalCount, 0);
+
+      const cards = [
+        ["기준일", formatDate(dayResult.date)],
+        ["활성 상품 수", String(scoredProducts.length)],
+        ["누적 구매 합계", totalPurchases.toLocaleString("ko-KR")],
+        ["1위 상품", top ? top.productName : "-"]
+      ];
+
+      els.summaryCards.innerHTML = cards.map(([k, v]) => (
+        '<div class="summary-card"><div class="k">' + k + '</div><div class="v">' + v + "</div></div>"
+      )).join("");
+    }
+
+    function renderRanking(dayResult) {
+      if (!dayResult || !dayResult.ranking.length) {
+        els.rankingList.innerHTML = '<div class="empty">표시할 랭킹이 없습니다.</div>';
+        return;
+      }
+
+      els.rankingList.innerHTML = dayResult.ranking.map((item) => {
+        const lastPurchase = item.lastPurchaseDate ? formatDate(item.lastPurchaseDate) : "구매 없음";
+        return (
+          '<article class="ranking-item">' +
+            '<div class="rank-badge">' + item.rank + '</div>' +
+            '<div>' +
+              '<div class="title">' + escapeHtml(item.productName) + '</div>' +
+              '<div class="meta">' +
+                '최근 30일 ' + item.recent30Count.toLocaleString("ko-KR") + '회 · ' +
+                '전체 ' + item.totalCount.toLocaleString("ko-KR") + '회 · ' +
+                '마지막 구매 ' + lastPurchase +
+              '</div>' +
+            '</div>' +
+            '<div class="score">' + item.score.toFixed(2) +
+              '<span class="score-sub">경과일 ' + (item.daysSinceLast == null ? "-" : item.daysSinceLast + "일") + "</span>" +
+            "</div>" +
+          "</article>"
+        );
+      }).join("");
+    }
+
+    function renderTimeline(simulations) {
+      if (!simulations.length) {
+        els.timelineWrap.innerHTML = '<div class="empty">기간 데이터가 없습니다.</div>';
+        return;
+      }
+
+      const products = simulations[0].ranking.map((item) => ({
+        productKey: item.productKey,
+        productName: item.productName
+      }));
+      const rankMaps = simulations.map((day) => {
+        const map = new Map();
+        day.ranking.forEach((item) => map.set(item.productKey, item.rank));
+        return map;
+      });
+
+      let html = "<table><thead><tr><th>상품명</th>";
+      simulations.forEach((day) => {
+        html += "<th>" + formatDate(day.date).slice(5) + "</th>";
+      });
+      html += "</tr></thead><tbody>";
+
+      products.forEach((product) => {
+        html += "<tr><td>" + escapeHtml(product.productName) + "</td>";
+        rankMaps.forEach((rankMap) => {
+          html += "<td>" + (rankMap.get(product.productKey) || "-") + "</td>";
+        });
+        html += "</tr>";
+      });
+
+      html += "</tbody></table>";
+      els.timelineWrap.innerHTML = html;
+    }
+
+    function renderMovements(simulations) {
+      if (!simulations.length) {
+        els.movementList.innerHTML = '<div class="empty">순위 변동 데이터가 없습니다.</div>';
+        return;
+      }
+
+      const first = simulations[0].ranking;
+      const last = simulations[simulations.length - 1].ranking;
+      const firstMap = new Map(first.map((item) => [item.productKey, item.rank]));
+      const lastMap = new Map(last.map((item) => [item.productKey, item.rank]));
+
+      const movementRows = last.map((item) => {
+        const startRank = firstMap.get(item.productKey);
+        const endRank = lastMap.get(item.productKey);
+        return {
+          productName: item.productName,
+          startRank,
+          endRank,
+          diff: startRank - endRank
+        };
+      }).sort((a, b) => b.diff - a.diff || a.endRank - b.endRank);
+
+      els.movementList.innerHTML = movementRows.map((item) => {
+        const diffText = item.diff > 0 ? "▲ " + item.diff : item.diff < 0 ? "▼ " + Math.abs(item.diff) : "변동 없음";
+        const diffClass = item.diff > 0 ? "good" : item.diff < 0 ? "bad" : "";
+        return (
+          '<article class="movement-item">' +
+            '<div>' +
+              '<div class="title">' + escapeHtml(item.productName) + '</div>' +
+              '<div class="meta">시작 ' + item.startRank + '위 → 종료 ' + item.endRank + "위</div>" +
+            "</div>" +
+            '<div>' + item.startRank + "위</div>" +
+            '<div class="' + diffClass + '">' + diffText + "</div>" +
+          "</article>"
+        );
+      }).join("");
+    }
+
+    function renderAll() {
+      const dayResult = state.simulations[state.selectedIndex];
+      renderSummaryCards(dayResult);
+      renderRanking(dayResult);
+      renderTimeline(state.simulations);
+      renderMovements(state.simulations);
+
+      if (dayResult) {
+        els.activeDatePill.textContent = "기준일 " + formatDate(dayResult.date);
+      } else {
+        els.activeDatePill.textContent = "기준일 없음";
+      }
+
+      els.tableMeta.textContent = state.simulations.length
+        ? formatDate(state.simulations[0].date) + " ~ " + formatDate(state.simulations[state.simulations.length - 1].date)
+        : "데이터 없음";
+    }
+
+    function applyDataset(dataset) {
+      state.products = dataset.products;
+      state.purchases = dataset.purchases;
+
+      if (!state.products.length) {
+        setStatus("상품 정보를 찾지 못했습니다. 상품 시트 매핑을 확인해 주세요.", true);
+        state.simulations = [];
+        renderAll();
+        return;
+      }
+
+      if (!state.purchases.length) {
+        setStatus("구매기록을 찾지 못했습니다. 구매기록 시트와 컬럼 매핑을 확인해 주세요.", true);
+        state.simulations = [];
+        renderAll();
+        return;
+      }
+
+      const range = getDateRange(state.purchases);
+      els.startDate.value = formatDate(range.min);
+      els.endDate.value = formatDate(range.max);
+      state.selectedIndex = Math.max(0, daysBetween(range.max, range.min));
+      runSimulation();
+      setStatus(
+        "상품 " + state.products.length + "개, 구매기록 " + state.purchases.length + "건을 반영했습니다."
+      );
+    }
+
+    function runSimulation() {
+      if (!state.products.length || !state.purchases.length) {
+        state.simulations = [];
+        renderAll();
+        return;
+      }
+
+      const startDate = parseLooseDate(els.startDate.value);
+      const endDate = parseLooseDate(els.endDate.value);
+
+      if (!startDate || !endDate || startDate > endDate) {
+        setStatus("시작일과 종료일을 다시 확인해 주세요.", true);
+        return;
+      }
+
+      state.simulations = simulate(state.products, state.purchases, startDate, endDate);
+      els.selectedDay.min = 0;
+      els.selectedDay.max = String(Math.max(0, state.simulations.length - 1));
+      state.selectedIndex = Math.min(state.selectedIndex, state.simulations.length - 1);
+      els.selectedDay.value = String(state.selectedIndex);
+      renderAll();
+    }
+
+    function exportResults() {
+      if (!state.simulations.length) {
+        setStatus("내보낼 결과가 없습니다.", true);
+        return;
+      }
+
+      const rankingRows = [];
+      state.simulations.forEach((day) => {
+        day.ranking.forEach((item) => {
+          rankingRows.push({
+            date: formatDate(day.date),
+            rank: item.rank,
+            product_id: item.productId || "",
+            product_name: item.productName,
+            score: item.score,
+            recent_30_count: item.recent30Count,
+            total_count: item.totalCount,
+            last_purchase_date: item.lastPurchaseDate ? formatDate(item.lastPurchaseDate) : "",
+            days_since_last_purchase: item.daysSinceLast == null ? "" : item.daysSinceLast
+          });
+        });
+      });
+
+      const timelineRows = state.products.map((product) => {
+        const row = {
+          product_id: product.productId || "",
+          product_name: product.productName
+        };
+        state.simulations.forEach((day) => {
+          const found = day.ranking.find((item) => item.productKey === product.productKey);
+          row[formatDate(day.date)] = found ? found.rank : "";
+        });
+        return row;
+      });
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rankingRows), "daily_ranking");
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(timelineRows), "rank_timeline");
+      XLSX.writeFile(workbook, "purchase-rank-simulation.xlsx");
+    }
+
+    function downloadTemplate() {
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(sampleWorkbook.products), "products");
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(sampleWorkbook.purchases), "purchases");
+      XLSX.writeFile(workbook, "purchase-rank-template.xlsx");
+    }
+
+    function loadSampleWorkbook() {
+      state.workbookData = {
+        products: sampleWorkbook.products,
+        purchases: sampleWorkbook.purchases
+      };
+      state.sheetNames = ["products", "purchases"];
+      updateSheetSelectors();
+      els.productsSheet.value = "products";
+      els.purchasesSheet.value = "purchases";
+      updateColumnSelectors();
+      els.productIdColumn.value = "product_id";
+      els.productNameColumn.value = "product_name";
+      els.purchaseDateColumn.value = "purchase_date";
+      els.purchaseProductIdColumn.value = "product_id";
+      els.purchaseProductNameColumn.value = "";
+      applyDataset(buildDataset());
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    els.importExcel.addEventListener("click", () => els.excelFileInput.click());
+    els.excelFileInput.addEventListener("change", async (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) {
+        return;
+      }
+
+      try {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
+        readWorkbook(workbook);
+      } catch (error) {
+        console.error(error);
+        setStatus("엑셀 파일을 읽는 중 오류가 발생했습니다.", true);
+      }
+    });
+
+    els.productsSheet.addEventListener("change", updateColumnSelectors);
+    els.purchasesSheet.addEventListener("change", updateColumnSelectors);
+    els.applyMapping.addEventListener("click", () => applyDataset(buildDataset()));
+    els.loadSample.addEventListener("click", loadSampleWorkbook);
+    els.downloadTemplate.addEventListener("click", downloadTemplate);
+    els.selectedDay.addEventListener("input", () => {
+      state.selectedIndex = Number(els.selectedDay.value) || 0;
+      renderAll();
+    });
+    els.startDate.addEventListener("change", runSimulation);
+    els.endDate.addEventListener("change", runSimulation);
+    els.exportXlsx.addEventListener("click", exportResults);
+
+    renderSummaryCards(null);
+    renderRanking(null);
+    renderTimeline([]);
+    renderMovements([]);
+  </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>큐마켓 설문 참여 마트 분포</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #f5f5f5; }
+
+  #header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  #header h1 { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+  #header .stats { font-size: 13px; color: #888; }
+
+  .legend { display: flex; gap: 16px; margin-left: auto; align-items: center; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #555; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.15); }
+  .legend-dot.green  { background: #2ECC71; border-color: #27AE60; }
+  .legend-dot.yellow { background: #F4D03F; border-color: #D4AC0D; }
+  .legend-dot.red    { background: #E74C3C; border-color: #CB4335; }
+  .legend-dot.gray   { background: #ABABAB; border-color: #888; }
+
+  #map { position: fixed; top: 57px; left: 0; right: 0; bottom: 0; }
+
+  .marker-pin {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 2.5px solid rgba(0,0,0,0.18);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.20);
+    cursor: pointer; transition: transform 0.15s;
+  }
+  .marker-pin:hover { transform: scale(1.15); }
+  .marker-pin.green  { background: #2ECC71; border-color: #27AE60; }
+  .marker-pin.yellow { background: #F4D03F; border-color: #D4AC0D; }
+  .marker-pin.red    { background: #E74C3C; border-color: #CB4335; }
+  .marker-pin.gray   { background: #ABABAB; border-color: #888; }
+
+  .zoom-label {
+    background: rgba(255,255,255,0.92);
+    border: 1px solid #ddd; border-radius: 6px;
+    padding: 3px 7px; font-size: 11px; font-weight: 600; color: #222;
+    white-space: nowrap; pointer-events: none;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  }
+
+  .leaflet-popup-content-wrapper {
+    border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border: none; padding: 0;
+  }
+  .leaflet-popup-content { margin: 0; min-width: 210px; }
+  .popup-inner { padding: 14px 16px; }
+  .popup-name { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+  .popup-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+  .popup-tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+  .popup-tag.red    { background: #FEE2E2; color: #991B1B; }
+  .popup-tag.yellow { background: #FEF9C3; color: #854D0E; }
+  .popup-divider { height: 1px; background: #f0f0f0; margin: 8px 0; }
+  .popup-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 5px; font-size: 12px; }
+  .popup-label { color: #999; min-width: 44px; flex-shrink: 0; }
+  .popup-val { color: #333; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>큐마켓 설문 참여 마트 분포</h1>
+  <span class="stats" id="stats"></span>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot green"></div>서울 근교 응답 동의 마트</div>
+    <!-- <div class="legend-item"><div class="legend-dot yellow"></div>애매한 위치</div> -->
+    <div class="legend-item"><div class="legend-dot red"></div>인터뷰 비동의</div>
+    <div class="legend-item"><div class="legend-dot gray"></div>교외 응답 동의 마트</div>
+  </div>
+</div>
+
+<div id="map"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const marts = [
+  // ── 서울 근교 ──────────────────────────────
+  { name: '제일식자재마트(부개점)',   address: '인천 부평구 동수로 153',           travel: '1시간 1분',     lat: 37.4921, lon: 126.7238, yellow: false, red: true,  gray: false, near: true,  personName: '-' },
+  { name: '코끼리마트 광장점',       address: '서울 광진구 아차산로 537-17',      travel: '52분',          lat: 37.5476, lon: 127.0892, yellow: false, red: false, gray: false, near: true,  personName: '-' },
+  { name: '대농식자재마트',          address: '경기도 김포시 통진읍 서암로 140',  travel: '약 1시간 17분', lat: 37.7107, lon: 126.6165, yellow: false, red: false, gray: false, near: true,  personName: '황현신' },
+  { name: '하모니마트 포동점',       address: '경기 시흥시 신현로38번길 22',      travel: '1시간 2분',     lat: 37.3968, lon: 126.8033, yellow: false,  red: true,  gray: false, near: true,  personName: '-' },
+  { name: '포켓마켓 마전점',         address: '인천 서구 완정로 43',              travel: '1시간',         lat: 37.5628, lon: 126.6542, yellow: false, red: false, gray: false, near: true,  personName: '-' },
+  { name: '농가마트 검암점',         address: '인천 서구 한중로 2',               travel: '50분',          lat: 37.5575, lon: 126.6523, yellow: false, red: true,  gray: false, near: true,  personName: '-' },
+  { name: '신세계마트 당하점',       address: '인천광역시 서구 청마로51번길 17',  travel: '50분',          lat: 37.5645, lon: 126.6988, yellow: false, red: false, gray: false, near: true,  personName: 'ㄴㄴ' },
+  { name: '즐거운마트 부평점',       address: '인천 부평구 길주로494번길 59',     travel: '55분',          lat: 37.5040, lon: 126.7210, yellow: false, red: false, gray: false, near: true,  personName: '황명숙' },
+  { name: '썬할인마트',             address: '경기도 부천시 소사구 자유로 18-1',  travel: '42분',          lat: 37.4777, lon: 126.7736, yellow: false, red: true,  gray: false, near: true,  personName: '-' },
+  { name: '이오마트 파주',           address: '경기 파주시 하우3길 81',           travel: '약 1시간',      lat: 37.8290, lon: 126.7710, yellow: false, red: false, gray: false, near: true,  personName: '-' },
+  { name: '화곡본마트',             address: '서울특별시 강서구 까치산로4길 3',   travel: '34분',          lat: 37.5407, lon: 126.8499, yellow: false, red: false, gray: false, near: true,  personName: '-' },
+  // ── 교외 동의 마트 목록 ───────────────────────────────
+  { name: '에스엠마트수완점',        address: '광주 광산구 장덕로95번길 16',      travel: '약 4시간',      lat: 35.2040, lon: 126.8350, yellow: false, red: false, gray: true, near: false, personName: '-' },
+  { name: '오케이포인트마트 달성점', address: '대구 달성군 유가읍 테크노상업로 120',       travel: '3시간 21분', lat: 35.8394, lon: 128.5217, yellow: false, red: false, gray: true, near: false, personName: '-' },
+  { name: '하모니마트오창점',       address: '충북 청주시 청원구 오창읍 양청택지로 107',   travel: '2시간 35분', lat: 36.7248, lon: 127.4458, yellow: false, red: false, gray: true, near: false, personName: '김승수' },
+  { name: 'OK플러스마트 해운대점',  address: '부산 해운대구 양운로 40 1층',               travel: '3시간 48분', lat: 35.1630, lon: 129.1460, yellow: false, red: false, gray: true, near: false, personName: '이명규' },
+  { name: 'Ok포인트마트 현풍점',    address: '대구 달성군 현풍읍',                        travel: '—',          lat: 35.6490, lon: 128.4280, yellow: false, red: false, gray: true, near: false, personName: '이경윤' },
+  { name: '우리마트 나운점',        address: '전북특별자치도 군산시 축동로 98-2',          travel: '3시간 48분', lat: 35.9560, lon: 126.7140, yellow: false, red: false, gray: true, near: false, personName: '이세영' },
+  { name: '전주유명마트',           address: '전북 전주시 완산구 서원로 308',              travel: '4시간',      lat: 35.8085, lon: 127.1048, yellow: false, red: false, gray: true, near: false, personName: '최석우' },
+  { name: '엘디마트 정읍점',        address: '전북 정읍시 학산로 117-11',                 travel: '3시간',      lat: 35.5693, lon: 126.8522, yellow: false, red: false, gray: true, near: false, personName: '김정환' },
+  { name: 'Okplus마트 밀양점',     address: '경남 밀양시 북성로 48',                      travel: '약 3시간',   lat: 35.4940, lon: 128.7455, yellow: false, red: false, gray: true, near: false, personName: '한유진' },
+  { name: '하모니마트대소점',       address: '충북 음성군 대소면 오태로 117',              travel: '약 3시간',   lat: 36.8840, lon: 127.5670, yellow: false, red: false, gray: true, near: false, personName: '-' },
+  { name: '더마트 수영점',          address: '부산 수영구 수영로741번길 27',               travel: '3시간 40분', lat: 35.1570, lon: 129.1089, yellow: false, red: false, gray: true, near: false, personName: '김지훈' },
+  { name: '와따',                  address: '경기도 광주시 신현동',                        travel: '—',          lat: 37.4003, lon: 127.2531, yellow: false, red: false, gray: true, near: false, personName: '이정현' },
+  { name: '토마토마트금천점',       address: '충북 청주시 상당구 중고개로 279',            travel: '약 3시간',   lat: 36.6413, lon: 127.4901, yellow: false, red: false, gray: true, near: false, personName: '-' },
+  { name: '옥천엘마트',            address: '충북 옥천군',                                 travel: '—',          lat: 36.3006, lon: 127.5709, yellow: false, red: false, gray: true, near: false, personName: '서동해' },
+  { name: '토마토마트 용암점',      address: '충북 청주시 용암동',                         travel: '—',          lat: 36.6232, lon: 127.4736, yellow: false, red: false, gray: true, near: false, personName: '-' },
+];
+
+// ── 통계 계산 ─────────────────────────────────────────────────────────────
+const totalCount  = marts.length;
+const nearCount   = marts.filter(m => m.near).length;
+const refuseCount = marts.filter(m => m.red).length;
+
+document.getElementById('stats').textContent =
+  `총 마트: ${totalCount}개 | 1시간 내외 거리: ${nearCount}개 (인터뷰 비동의: ${refuseCount}개)`;
+
+// ── 지도 초기화 ───────────────────────────────────────────────────────────
+const LABEL_ZOOM = 12;
+
+const map = L.map('map', { zoomControl: true });
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
+  subdomains: 'abcd', maxZoom: 19
+}).addTo(map);
+
+function makeIcon(cls) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="marker-pin ${cls}"></div>`,
+    iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -16]
+  });
+}
+
+function makeLabelIcon(name) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="zoom-label">${name}</div>`,
+    iconAnchor: [-16, 10], iconSize: null
+  });
+}
+
+function makePopupHtml(mart) {
+  let tags = '';
+  if (mart.red)    tags += `<span class="popup-tag red">인터뷰 비동의</span>`;
+  if (mart.yellow) tags += `<span class="popup-tag yellow">현장 방문 대상</span>`;
+  const addr   = (mart.address && mart.address !== '—') ? mart.address : '주소 미확인';
+  const travel = (mart.travel  && mart.travel  !== '—') ? mart.travel  : '정보 없음';
+  const nameRow = mart.personName
+    ? `<div class="popup-row"><span class="popup-label">성함</span><span class="popup-val">${mart.personName}</span></div>`
+    : '';
+  return `
+    <div class="popup-inner">
+      <div class="popup-name">${mart.name}</div>
+      ${tags ? `<div class="popup-tags">${tags}</div>` : ''}
+      <div class="popup-divider"></div>
+      <div class="popup-row"><span class="popup-label">주소</span><span class="popup-val">${addr}</span></div>
+      <div class="popup-row"><span class="popup-label">소요시간</span><span class="popup-val">${travel}</span></div>
+      ${nameRow}
+    </div>`;
+}
+
+const labelLayers = [];
+
+marts.forEach(mart => {
+  const cls = mart.gray ? 'gray' : mart.red ? 'red' : mart.yellow ? 'yellow' : 'green';
+
+  L.marker([mart.lat, mart.lon], { icon: makeIcon(cls) })
+    .addTo(map)
+    .bindPopup(makePopupHtml(mart), { maxWidth: 260 });
+
+  labelLayers.push(L.marker([mart.lat, mart.lon], {
+    icon: makeLabelIcon(mart.name),
+    interactive: false, zIndexOffset: -100
+  }));
+});
+
+// ── 줌 레이블 ─────────────────────────────────────────────────────────────
+function updateLabels() {
+  const zoom = map.getZoom();
+  labelLayers.forEach(label => {
+    if (zoom >= LABEL_ZOOM) {
+      if (!map.hasLayer(label)) label.addTo(map);
+    } else {
+      if (map.hasLayer(label)) map.removeLayer(label);
+    }
+  });
+}
+map.on('zoomend', updateLabels);
+
+map.fitBounds(L.latLngBounds(marts.map(m => [m.lat, m.lon])), { padding: [50, 50] });
+updateLabels();
+</script>
+</body>
+</html>
