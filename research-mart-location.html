@@ -73,10 +73,10 @@
   <h1>큐마켓 설문 참여 마트 분포</h1>
   <span class="stats" id="stats"></span>
   <div class="legend">
-    <div class="legend-item"><div class="legend-dot green"></div>서울 근교 응답 동의 마트</div>
+    <div class="legend-item"><div class="legend-dot green"></div>대면 인터뷰 고려 마트(대면, 유선 모두 가능)</div>
     <!-- <div class="legend-item"><div class="legend-dot yellow"></div>애매한 위치</div> -->
     <div class="legend-item"><div class="legend-dot red"></div>인터뷰 비동의</div>
-    <div class="legend-item"><div class="legend-dot gray"></div>교외 응답 동의 마트</div>
+    <div class="legend-item"><div class="legend-dot gray"></div>기타(대면 곤란, 유선 대상)</div>
   </div>
 </div>
 
@@ -99,20 +99,20 @@ const marts = [
   { name: '화곡본마트',             address: '서울특별시 강서구 까치산로4길 3',   travel: '34분',          lat: 37.5407, lon: 126.8499, yellow: false, red: false, gray: false, near: true,  personName: '-' },
   // ── 교외 동의 마트 목록 ───────────────────────────────
   { name: '에스엠마트수완점',        address: '광주 광산구 장덕로95번길 16',      travel: '약 4시간',      lat: 35.2040, lon: 126.8350, yellow: false, red: false, gray: true, near: false, personName: '-' },
-  { name: '오케이포인트마트 달성점', address: '대구 달성군 유가읍 테크노상업로 120',       travel: '3시간 21분', lat: 35.8394, lon: 128.5217, yellow: false, red: false, gray: true, near: false, personName: '-' },
-  { name: '하모니마트오창점',       address: '충북 청주시 청원구 오창읍 양청택지로 107',   travel: '2시간 35분', lat: 36.7248, lon: 127.4458, yellow: false, red: false, gray: true, near: false, personName: '김승수' },
+  { name: '오케이포인트마트 달성점', address: '대구 달성군 유가읍 테크노상업로 120',       travel: '3시간 21분', lat: 35.8394, lon: 128.5217, yellow: false, red: true, gray: true, near: false, personName: '-' },
+  { name: '하모니마트오창점',       address: '충북 청주시 청원구 오창읍 양청택지로 107',   travel: '2시간 35분', lat: 36.7248, lon: 127.4458, yellow: false, red: true, gray: true, near: false, personName: '김승수' },
   { name: 'OK플러스마트 해운대점',  address: '부산 해운대구 양운로 40 1층',               travel: '3시간 48분', lat: 35.1630, lon: 129.1460, yellow: false, red: false, gray: true, near: false, personName: '이명규' },
   { name: 'Ok포인트마트 현풍점',    address: '대구 달성군 현풍읍',                        travel: '—',          lat: 35.6490, lon: 128.4280, yellow: false, red: false, gray: true, near: false, personName: '이경윤' },
   { name: '우리마트 나운점',        address: '전북특별자치도 군산시 축동로 98-2',          travel: '3시간 48분', lat: 35.9560, lon: 126.7140, yellow: false, red: false, gray: true, near: false, personName: '이세영' },
   { name: '전주유명마트',           address: '전북 전주시 완산구 서원로 308',              travel: '4시간',      lat: 35.8085, lon: 127.1048, yellow: false, red: false, gray: true, near: false, personName: '최석우' },
   { name: '엘디마트 정읍점',        address: '전북 정읍시 학산로 117-11',                 travel: '3시간',      lat: 35.5693, lon: 126.8522, yellow: false, red: false, gray: true, near: false, personName: '김정환' },
-  { name: 'Okplus마트 밀양점',     address: '경남 밀양시 북성로 48',                      travel: '약 3시간',   lat: 35.4940, lon: 128.7455, yellow: false, red: false, gray: true, near: false, personName: '한유진' },
-  { name: '하모니마트대소점',       address: '충북 음성군 대소면 오태로 117',              travel: '약 3시간',   lat: 36.8840, lon: 127.5670, yellow: false, red: false, gray: true, near: false, personName: '-' },
+  { name: 'Okplus마트 밀양점',     address: '경남 밀양시 북성로 48',                      travel: '약 3시간',   lat: 35.4940, lon: 128.7455, yellow: false, red: true, gray: true, near: false, personName: '한유진' },
+  { name: '하모니마트대소점',       address: '충북 음성군 대소면 오태로 117',              travel: '약 3시간',   lat: 36.8840, lon: 127.5670, yellow: false, red: true, gray: true, near: false, personName: '-' },
   { name: '더마트 수영점',          address: '부산 수영구 수영로741번길 27',               travel: '3시간 40분', lat: 35.1570, lon: 129.1089, yellow: false, red: false, gray: true, near: false, personName: '김지훈' },
   { name: '와따',                  address: '경기도 광주시 신현동',                        travel: '—',          lat: 37.4003, lon: 127.2531, yellow: false, red: false, gray: true, near: false, personName: '이정현' },
-  { name: '토마토마트금천점',       address: '충북 청주시 상당구 중고개로 279',            travel: '약 3시간',   lat: 36.6413, lon: 127.4901, yellow: false, red: false, gray: true, near: false, personName: '-' },
+  { name: '토마토마트금천점',       address: '충북 청주시 상당구 중고개로 279',            travel: '약 3시간',   lat: 36.6413, lon: 127.4901, yellow: false, red: true, gray: true, near: false, personName: '-' },
   { name: '옥천엘마트',            address: '충북 옥천군',                                 travel: '—',          lat: 36.3006, lon: 127.5709, yellow: false, red: false, gray: true, near: false, personName: '서동해' },
-  { name: '토마토마트 용암점',      address: '충북 청주시 용암동',                         travel: '—',          lat: 36.6232, lon: 127.4736, yellow: false, red: false, gray: true, near: false, personName: '-' },
+  { name: '토마토마트 용암점',      address: '충북 청주시 용암동',                         travel: '—',          lat: 36.6232, lon: 127.4736, yellow: false, red: true, gray: true, near: false, personName: '-' },
 ];
 
 // ── 통계 계산 ─────────────────────────────────────────────────────────────
@@ -121,7 +121,7 @@ const nearCount   = marts.filter(m => m.near).length;
 const refuseCount = marts.filter(m => m.red).length;
 
 document.getElementById('stats').textContent =
-  `총 마트: ${totalCount}개 | 1시간 내외 거리: ${nearCount}개 (인터뷰 비동의: ${refuseCount}개)`;
+  `총 마트: ${totalCount}개 | 1시간 내외 거리: ${nearCount}개 | 2차 인터뷰 비동의: ${refuseCount}개 | 인터뷰 고려 대상: 7개`;
 
 // ── 지도 초기화 ───────────────────────────────────────────────────────────
 const LABEL_ZOOM = 12;
@@ -172,7 +172,7 @@ function makePopupHtml(mart) {
 const labelLayers = [];
 
 marts.forEach(mart => {
-  const cls = mart.gray ? 'gray' : mart.red ? 'red' : mart.yellow ? 'yellow' : 'green';
+  const cls = mart.red ? 'red' : mart.gray ? 'gray' : mart.yellow ? 'yellow' : 'green';
 
   L.marker([mart.lat, mart.lon], { icon: makeIcon(cls) })
     .addTo(map)
