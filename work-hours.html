@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>근무시간 계산기</title>
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card: #fff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --sub: #64748b;
+      --primary: #2563eb;
+      --radius: 16px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .wrap { max-width: 560px; margin: 0 auto; }
+
+    /* ── Header ── */
+    .header { margin-bottom: 18px; }
+    .header h1 { font-size: 1.25rem; font-weight: 800; margin-bottom: 12px; }
+
+    .week-nav {
+      display: flex;
+      align-items: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+    }
+    .week-nav button {
+      background: none; border: none;
+      border-radius: 8px;
+      padding: 9px 14px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--sub);
+      flex-shrink: 0;
+      transition: background .15s;
+    }
+    .week-nav button:active { background: var(--bg); }
+    #weekLabel {
+      flex: 1; text-align: center;
+      font-size: 0.88rem; font-weight: 600;
+    }
+
+    /* ── Summary (horizontal scroll) ── */
+    .summary-row {
+      display: flex; gap: 10px;
+      overflow-x: auto; padding-bottom: 4px;
+      margin-bottom: 14px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .summary-row::-webkit-scrollbar { display: none; }
+
+    .s-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 16px;
+      text-align: center;
+      flex-shrink: 0;
+      min-width: 128px;
+    }
+    .s-lbl { font-size: 0.66rem; color: var(--sub); font-weight: 500; margin-bottom: 4px; }
+    .s-val { font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .c-blue  .s-val { color: var(--primary); }
+    .c-green .s-val { color: #16a34a; }
+    .c-red   .s-val { color: #dc2626; }
+    .c-gray  .s-val { color: var(--sub); }
+
+    /* ── Progress ── */
+    .progress {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+    .prog-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; font-size: 0.82rem; }
+    .prog-head b { font-weight: 600; }
+    .prog-head span { color: var(--sub); font-size: 0.76rem; }
+    .bar-track { height: 6px; background: #e2e8f0; border-radius: 100px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 100px; transition: width .35s; }
+    .bar-fill.under  { background: #f59e0b; }
+    .bar-fill.ok     { background: var(--primary); }
+    .bar-fill.over   { background: #16a34a; }
+
+    /* ── Day card ── */
+    .day-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: border-color .15s;
+    }
+    .day-card.s-holiday { border-color: #93c5fd; background: #eff6ff; }
+    .day-card.s-annual  { border-color: #c4b5fd; background: #f5f3ff; }
+    .day-card.s-half    { border-color: #fcd34d; background: #fffbeb; }
+    .day-card.s-quarter { border-color: #6ee7b7; background: #f0fdf4; }
+    .day-card.s-today   { border-color: var(--primary); }
+
+    /* Card header */
+    .c-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px 11px;
+      border-bottom: 1px solid var(--border);
+    }
+    .c-head-left .d-name { font-size: 0.95rem; font-weight: 700; }
+    .c-head-left .d-date { font-size: 0.7rem; color: var(--sub); margin-top: 1px; }
+    .c-head-left.today .d-name { color: var(--primary); }
+
+    .holiday-lbl {
+      display: flex; align-items: center; gap: 6px;
+      cursor: pointer; user-select: none;
+      font-size: 0.76rem; color: var(--sub);
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: background .15s;
+    }
+    .holiday-lbl:active { background: rgba(0,0,0,.06); }
+    .holiday-lbl input { accent-color: var(--primary); width: 15px; height: 15px; cursor: pointer; }
+
+    /* Card body */
+    .c-body { padding: 14px 16px; }
+
+    .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+    .t-field { display: flex; flex-direction: column; gap: 5px; }
+    .t-field label { font-size: 0.68rem; font-weight: 600; color: var(--sub); letter-spacing: .3px; text-transform: uppercase; }
+
+    .t-input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .5px;
+      color: var(--text);
+      background: #fff;
+      transition: border-color .15s, box-shadow .15s;
+      -webkit-appearance: none;
+    }
+    .t-input::placeholder { color: #cbd5e1; font-weight: 400; font-size: 0.9rem; letter-spacing: 0; }
+    .t-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .t-input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+
+    /* Target hint */
+    .t-hint {
+      display: inline-block;
+      margin-top: 5px;
+      font-size: 0.69rem;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .t-hint.need { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .t-hint.done { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .t-hint strong { font-weight: 700; }
+
+    /* Leave select */
+    .l-field { display: flex; flex-direction: column; gap: 5px; }
+    .l-field label { font-size: 0.68rem; font-weight: 600; color: var(--sub); letter-spacing: .3px; text-transform: uppercase; }
+
+    .l-select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 32px 10px 12px;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2364748b' d='M5 6L0 0h10z'/%3E%3C/svg%3E") no-repeat right 12px center;
+      appearance: none; -webkit-appearance: none;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .l-select:focus { outline: none; border-color: var(--primary); }
+    .l-select:disabled { background-color: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+
+    /* Card footer */
+    .c-foot {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      border-top: 1px solid var(--border);
+    }
+    .f-cell {
+      padding: 12px 8px; text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .f-cell:last-child { border-right: none; }
+    .f-lbl { font-size: 0.64rem; color: var(--sub); font-weight: 500; margin-bottom: 4px; }
+    .f-val { font-size: 0.92rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .f-val.blue  { color: var(--primary); }
+    .f-val.muted { color: #cbd5e1; font-weight: 400; }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 100px;
+      font-size: 0.69rem;
+      font-weight: 600;
+    }
+    .b-holiday  { background: #dbeafe; color: #1d4ed8; }
+    .b-annual   { background: #ede9fe; color: #6d28d9; }
+    .b-half     { background: #fef3c7; color: #92400e; }
+    .b-quarter  { background: #d1fae5; color: #065f46; }
+
+    /* Legend + note */
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 8px 14px;
+      margin-top: 14px; padding: 0 2px;
+      font-size: 0.7rem; color: var(--sub);
+    }
+    .leg { display: flex; align-items: center; gap: 5px; }
+    .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .note { margin-top: 8px; font-size: 0.68rem; color: var(--sub); padding: 0 2px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>근무시간 계산기</h1>
+    <div class="week-nav">
+      <button onclick="changeWeek(-1)">&#9664;</button>
+      <span id="weekLabel"></span>
+      <button onclick="changeWeek(1)">&#9654;</button>
+    </div>
+  </div>
+
+  <div class="summary-row" id="summary"></div>
+
+  <div class="progress">
+    <div class="prog-head">
+      <b>주간 목표 달성률</b>
+      <span id="progMeta"></span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+  </div>
+
+  <div id="cards"></div>
+
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:#93c5fd"></div>공휴일 (8h 인정)</div>
+    <div class="leg"><div class="leg-dot" style="background:#c4b5fd"></div>연차 (8h 차감)</div>
+    <div class="leg"><div class="leg-dot" style="background:#fde68a"></div>반차 (4h 차감)</div>
+    <div class="leg"><div class="leg-dot" style="background:#6ee7b7"></div>반반차 (2h 차감)</div>
+  </div>
+  <div class="note">
+    * 점심시간(11:30~12:30)은 실근무시간에서 자동 제외됩니다.<br>
+    * 시간 입력: 숫자 입력 후 자동 변환 (예: 0930 → 09:30:00, 093045 → 09:30:45)
+  </div>
+
+</div>
+
+<script>
+  const DAYS_KO = ['월요일','화요일','수요일','목요일','금요일'];
+  const TARGET  = 40 * 3600;
+  const LUNCH_S = (11 * 60 + 30) * 60;
+  const LUNCH_E = (12 * 60 + 30) * 60;
+
+  let weekOffset = 0;
+  const LS_KEY = 'work-hours-v1';
+
+  function freshDay() {
+    return { holiday: false, checkin: '', checkout: '', leave: 'none' };
+  }
+
+  // localStorage 전체를 객체로 관리 (key: "YYYY-MM-DD" 월요일 날짜)
+  function loadStore() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; }
+  }
+
+  function saveStore(store) {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(store)); } catch(e) {}
+  }
+
+  function weekDays(off) {
+    const today = new Date();
+    const dow   = today.getDay();
+    const mon   = new Date(today);
+    mon.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1) + off * 7);
+    return Array.from({ length: 5 }, (_, i) => {
+      const d = new Date(mon);
+      d.setDate(mon.getDate() + i);
+      return d;
+    });
+  }
+
+  function getMondayKey(off) {
+    const mon = weekDays(off)[0];
+    return `${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
+  }
+
+  const _cache = {};  // 인메모리 캐시가 source of truth
+
+  function getData(off) {
+    if (!_cache[off]) {
+      const store = loadStore();
+      const key   = getMondayKey(off);
+      const saved = store[key];
+      // localStorage에 저장된 값이 있으면 freshDay와 병합 (필드 누락 방지)
+      _cache[off] = saved
+        ? saved.map(d => Object.assign(freshDay(), d))
+        : Array.from({ length: 5 }, freshDay);
+    }
+    return _cache[off];
+  }
+
+  function setData(off, data) {
+    _cache[off] = data;           // 메모리 즉시 반영
+    const store = loadStore();
+    store[getMondayKey(off)] = data;
+    saveStore(store);             // localStorage는 비동기적 보조 저장
+  }
+
+  function toSec(t) {
+    if (!t) return null;
+    const parts = t.split(':').map(Number);
+    if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
+    return parts[0]*3600 + parts[1]*60;   // HH:MM (legacy)
+  }
+
+  function fmt(sec) {
+    if (sec === null || sec === undefined) return '—';
+    const sign = sec < 0 ? '-' : '';
+    const abs  = Math.abs(sec);
+    const h = Math.floor(abs / 3600);
+    const m = Math.floor((abs % 3600) / 60);
+    const s = abs % 60;
+    return sign
+      + String(h).padStart(2,'0') + ':'
+      + String(m).padStart(2,'0') + ':'
+      + String(s).padStart(2,'0');
+  }
+
+  function calcDay(d) {
+    if (d.holiday) return { work: 8*3600, real: 8*3600, leave: 0 };
+    const leaveMap = { none: 0, annual: 8*3600, half: 4*3600, quarter: 2*3600 };
+    const leaveSec = leaveMap[d.leave] ?? 0;
+    if (d.leave === 'annual') return { work: 0, real: 0, leave: 8*3600 };
+    const inn = toSec(d.checkin), out = toSec(d.checkout);
+    if (inn === null || out === null || out <= inn) return { work: 0, real: 0, leave: leaveSec };
+    const work = out - inn;
+    const ov   = Math.max(0, Math.min(out, LUNCH_E) - Math.max(inn, LUNCH_S));
+    return { work, real: work - ov, leave: leaveSec };
+  }
+
+  function countedExcluding(data, idx) {
+    return data.reduce((s, d, i) => {
+      if (i === idx) return s;
+      const c = calcDay(d);
+      return s + c.real + c.leave;
+    }, 0);
+  }
+
+  function calcRequiredCheckout(checkinMin, needed) {
+    if (needed <= 0) return null;
+    let co = checkinMin + needed;
+    for (let k = 0; k < 3; k++) {
+      const ov = Math.max(0, Math.min(co, LUNCH_E) - Math.max(checkinMin, LUNCH_S));
+      co = checkinMin + needed + ov;
+    }
+    return co;
+  }
+
+  // ── Time input helpers ────────────────────────────────────────
+  function parseDigits(raw) {
+    return raw.replace(/\D/g, '').slice(0, 6);
+  }
+
+  function digitsToTime(digits) {
+    if (digits.length < 2) return null;
+    const padded = digits.padEnd(6, '0');
+    const h = parseInt(padded.slice(0, 2));
+    const m = parseInt(padded.slice(2, 4));
+    const s = parseInt(padded.slice(4, 6));
+    if (h > 23 || m > 59 || s > 59) return null;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+
+  function displayDigits(digits) {
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return digits.slice(0,2) + ':' + digits.slice(2);
+    return digits.slice(0,2) + ':' + digits.slice(2,4) + ':' + digits.slice(4);
+  }
+
+  function onTimeInput(el) {
+    const digits = parseDigits(el.value);
+    el.value = displayDigits(digits);
+    const len = el.value.length;
+    try { el.setSelectionRange(len, len); } catch(e) {}
+
+    // 4자리 이상(HH:MM)이 되는 순간부터 실시간 저장 + 계산
+    if (digits.length >= 4) {
+      const parsed = digitsToTime(digits);
+      if (parsed) {
+        const parts = el.id.split('-');          // "t-{i}-in" or "t-{i}-out"
+        const i     = parseInt(parts[1]);
+        const field = parts[2] === 'in' ? 'checkin' : 'checkout';
+        const data  = getData(weekOffset);
+        if (data[i][field] !== parsed) {
+          data[i][field] = parsed;
+          setData(weekOffset, data);
+          updateCalc();
+        }
+      }
+    }
+  }
+
+  // blur: 값을 파싱·저장 후 계산 표시만 갱신 (카드 DOM 재건 없음)
+  function onTimeBlur(el, idx, field) {
+    const digits = parseDigits(el.value);
+    const data   = getData(weekOffset);
+    const d      = data[idx];
+
+    if (digits.length === 0) {
+      d[field] = '';
+      el.value = '';
+    } else {
+      const parsed = digitsToTime(digits);
+      if (parsed) {
+        d[field]  = parsed;
+        el.value  = parsed;   // 입력창 직접 업데이트
+      } else {
+        el.value = d[field];  // 유효하지 않으면 이전 값 복원
+      }
+    }
+    setData(weekOffset, data);
+    updateCalc();             // 계산 결과만 갱신
+  }
+
+  // ── Event handlers ────────────────────────────────────────────
+  function onHoliday(i, val) {
+    const data = getData(weekOffset);
+    data[i].holiday = val;
+    if (val) data[i].leave = 'none';
+    setData(weekOffset, data);
+    buildCards();   // 구조 변경(비활성화 등)이 필요할 때만 재건
+    updateCalc();
+  }
+
+  function onLeave(i, val) {
+    const data = getData(weekOffset);
+    data[i].leave = val;
+    if (val === 'annual') { data[i].checkin = ''; data[i].checkout = ''; }
+    setData(weekOffset, data);
+    buildCards();
+    updateCalc();
+  }
+
+  function changeWeek(dir) {
+    weekOffset += dir;
+    updateWeekLabel();
+    buildCards();
+    updateCalc();
+  }
+
+  // ── Week label ────────────────────────────────────────────────
+  function updateWeekLabel() {
+    const dates = weekDays(weekOffset);
+    const s = dates[0], e = dates[4];
+    document.getElementById('weekLabel').textContent =
+      `${s.getFullYear()}년 ${s.getMonth()+1}월 ${s.getDate()}일 — ${e.getMonth()+1}월 ${e.getDate()}일`;
+  }
+
+  // ── buildCards: 카드 DOM 재건 (구조적 변경 시에만 호출) ───────
+  function buildCards() {
+    const dates    = weekDays(weekOffset);
+    const data     = getData(weekOffset);
+    const todayStr = new Date().toDateString();
+    const frag     = document.createDocumentFragment();
+
+    dates.forEach((date, i) => {
+      const d       = data[i];
+      const isToday = date.toDateString() === todayStr;
+      const locked  = d.holiday || d.leave === 'annual';
+
+      let cardCls = 'day-card';
+      if (d.holiday)              cardCls += ' s-holiday';
+      else if (d.leave==='annual') cardCls += ' s-annual';
+      else if (d.leave==='half')   cardCls += ' s-half';
+      else if (d.leave==='quarter') cardCls += ' s-quarter';
+      if (isToday) cardCls += ' s-today';
+
+      const leaveCtrl = d.holiday
+        ? `<div class="badge b-holiday" style="padding:9px 14px;display:block;text-align:center;">공휴일 · 8시간 인정</div>`
+        : `<select class="l-select" onchange="onLeave(${i}, this.value)">
+             <option value="none"    ${d.leave==='none'?'selected':''}>— 없음</option>
+             <option value="annual"  ${d.leave==='annual'?'selected':''}>연차 (−8h)</option>
+             <option value="half"    ${d.leave==='half'?'selected':''}>반차 (−4h)</option>
+             <option value="quarter" ${d.leave==='quarter'?'selected':''}>반반차 (−2h)</option>
+           </select>`;
+
+      const card = document.createElement('div');
+      card.className = cardCls;
+      card.innerHTML = `
+        <div class="c-head">
+          <div class="c-head-left ${isToday ? 'today' : ''}">
+            <div class="d-name">${DAYS_KO[i]}</div>
+            <div class="d-date">${date.getFullYear()}.${date.getMonth()+1}.${String(date.getDate()).padStart(2,'0')}</div>
+          </div>
+          <label class="holiday-lbl">
+            <input type="checkbox" ${d.holiday ? 'checked' : ''} onchange="onHoliday(${i}, this.checked)">
+            공휴일
+          </label>
+        </div>
+        <div class="c-body">
+          <div class="time-row">
+            <div class="t-field">
+              <label>출근</label>
+              <input id="t-${i}-in" class="t-input" type="text" inputmode="numeric"
+                placeholder="093000" maxlength="8" value="${d.checkin}"
+                onfocus="this.select()"
+                oninput="onTimeInput(this)"
+                onkeydown="if(event.key==='Enter')this.blur()"
+                onblur="onTimeBlur(this,${i},'checkin')"
+                ${locked ? 'disabled' : ''}>
+            </div>
+            <div class="t-field">
+              <label>퇴근</label>
+              <input id="t-${i}-out" class="t-input" type="text" inputmode="numeric"
+                placeholder="183000" maxlength="8" value="${d.checkout}"
+                onfocus="this.select()"
+                oninput="onTimeInput(this)"
+                onkeydown="if(event.key==='Enter')this.blur()"
+                onblur="onTimeBlur(this,${i},'checkout')"
+                ${locked ? 'disabled' : ''}>
+              <div id="hint-${i}"></div>
+            </div>
+          </div>
+          <div class="l-field">
+            <label>연차 구분</label>
+            ${leaveCtrl}
+          </div>
+        </div>
+        <div class="c-foot">
+          <div class="f-cell"><div class="f-lbl">근무시간</div><div id="fw-${i}"></div></div>
+          <div class="f-cell"><div class="f-lbl">실근무시간</div><div id="fr-${i}"></div></div>
+          <div class="f-cell"><div class="f-lbl">연차시간</div><div id="fl-${i}"></div></div>
+        </div>
+      `;
+      frag.appendChild(card);
+    });
+
+    document.getElementById('cards').replaceChildren(frag);
+  }
+
+  // ── updateCalc: 계산 결과만 업데이트 (입력 DOM 건드리지 않음) ─
+  function updateCalc() {
+    const data = getData(weekOffset);
+    let sumWork = 0, sumReal = 0, sumLeave = 0;
+
+    data.forEach((d, i) => {
+      const cal = calcDay(d);
+      sumWork  += cal.work;
+      sumReal  += cal.real;
+      sumLeave += cal.leave;
+
+      // 카드 푸터
+      const wEl = document.getElementById(`fw-${i}`);
+      const rEl = document.getElementById(`fr-${i}`);
+      const lEl = document.getElementById(`fl-${i}`);
+
+      if (wEl) wEl.innerHTML = (cal.work > 0 || d.holiday)
+        ? `<span class="f-val">${fmt(cal.work)}</span>`
+        : `<span class="f-val muted">—</span>`;
+
+      if (rEl) rEl.innerHTML = (cal.real > 0 || d.holiday)
+        ? `<span class="f-val blue">${fmt(cal.real)}</span>`
+        : `<span class="f-val muted">—</span>`;
+
+      if (lEl) lEl.innerHTML = cal.leave > 0
+        ? `<span class="f-val"><span class="badge b-${d.leave}">${fmt(cal.leave)}</span></span>`
+        : `<span class="f-val muted">—</span>`;
+
+      // 목표 퇴근 힌트
+      const hEl = document.getElementById(`hint-${i}`);
+      if (hEl) {
+        const locked = d.holiday || d.leave === 'annual';
+        if (!locked && d.checkin && !d.checkout) {
+          const leaveSec = { none:0, annual:8*3600, half:4*3600, quarter:2*3600 }[d.leave] ?? 0;
+          const needed   = TARGET - countedExcluding(data, i) - leaveSec;
+          if (needed <= 0) {
+            hEl.innerHTML = `<div class="t-hint done">목표 달성 ✓</div>`;
+          } else {
+            const reqCo = calcRequiredCheckout(toSec(d.checkin), needed);
+            hEl.innerHTML = (reqCo !== null && reqCo < 24*3600)
+              ? `<div class="t-hint need">목표 퇴근 <strong>${fmt(reqCo)}</strong></div>`
+              : '';
+          }
+        } else {
+          hEl.innerHTML = '';
+        }
+      }
+    });
+
+    // 요약 카드
+    const counted = sumReal + sumLeave;
+    const diff    = counted - TARGET;
+    const pct     = Math.min(100, Math.round((counted / TARGET) * 100));
+
+    document.getElementById('summary').innerHTML = [
+      { lbl: '총 근무시간',   val: fmt(sumWork),  cls: '' },
+      { lbl: '총 실근무시간', val: fmt(sumReal),  cls: 'c-blue' },
+      { lbl: '총 연차시간',   val: fmt(sumLeave), cls: '' },
+      { lbl: '총 인정시간',   val: fmt(counted),  cls: 'c-blue' },
+      { lbl: '기본 목표',     val: '40:00:00',    cls: 'c-gray' },
+      { lbl: diff >= 0 ? '초과' : '부족',
+        val: (diff >= 0 ? '+' : '') + fmt(diff),
+        cls: diff >= 0 ? 'c-green' : 'c-red' },
+    ].map(c =>
+      `<div class="s-card ${c.cls}"><div class="s-lbl">${c.lbl}</div><div class="s-val">${c.val}</div></div>`
+    ).join('');
+
+    const fill = document.getElementById('barFill');
+    fill.style.width = pct + '%';
+    fill.className = 'bar-fill ' + (pct >= 100 ? 'over' : pct >= 50 ? 'ok' : 'under');
+    document.getElementById('progMeta').textContent = `${fmt(counted)} / 40:00:00 (${pct}%)`;
+  }
+
+  // ── Init ─────────────────────────────────────────────────────
+  updateWeekLabel();
+  buildCards();
+  updateCalc();
+</script>
+</body>
+</html>
