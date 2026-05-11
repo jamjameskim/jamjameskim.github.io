@@ -23,6 +23,16 @@
       min-height: 100vh;
     }
 
+    /* ── 스플래시 ── */
+    #splashScreen {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      transition: opacity .25s;
+    }
+    #splashScreen.fade-out { opacity: 0; pointer-events: none; }
+
     /* ── 로그인 화면 ── */
     .login-screen {
       min-height: 100vh;
@@ -248,8 +258,13 @@
 </head>
 <body>
 
+  <!-- ── 스플래시 (auth 확인 중) ── -->
+  <div id="splashScreen">
+    <div class="spinner"></div>
+  </div>
+
   <!-- ── 로그인 화면 ── -->
-  <div id="loginScreen" class="login-screen">
+  <div id="loginScreen" class="login-screen" style="display:none">
     <div class="login-card">
       <div class="icon">⏱</div>
       <h1>근무시간 계산기</h1>
@@ -683,6 +698,12 @@
     await signOut(auth);
   }
 
+  function hideSplash() {
+    const splash = document.getElementById('splashScreen');
+    splash.classList.add('fade-out');
+    setTimeout(() => splash.remove(), 280);
+  }
+
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
@@ -696,6 +717,7 @@
       Object.keys(_cache).forEach(k => delete _cache[k]);
       document.getElementById('cards').innerHTML =
         '<div class="loading-box"><div class="spinner"></div><span>불러오는 중…</span></div>';
+      hideSplash();
       await loadWeek(weekOffset);
       updateWeekLabel();
       buildCards();
@@ -705,6 +727,7 @@
       Object.keys(_cache).forEach(k => delete _cache[k]);
       document.getElementById('loginScreen').style.display = '';
       document.getElementById('mainApp').style.display    = 'none';
+      hideSplash();
     }
   });
 
