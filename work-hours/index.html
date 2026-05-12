@@ -255,6 +255,7 @@
     .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .note { margin-top: 8px; font-size: 0.68rem; color: var(--sub); padding: 0 2px; line-height: 1.5; }
   </style>
+  <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body>
 
@@ -330,7 +331,7 @@
 <script type="module">
   import { initializeApp }                              from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
   import { getAuth, GoogleAuthProvider,
-           signInWithPopup, signOut,
+           signInWithPopup, signInWithCredential, signOut,
            onAuthStateChanged }                         from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
   import { getFirestore, doc, getDoc, setDoc }         from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
@@ -685,11 +686,47 @@
   }
 
   // ── 인증 ─────────────────────────────────────────────────────
-  async function signInWithGoogle() {
+  const GSI_CLIENT_ID = '355924897291-4v04uvr27b8c7u7m92ue1gh6ngen68jv.apps.googleusercontent.com';
+
+  // GSI 콜백 (전역 노출 필요)
+  window.handleGoogleCredential = async function(response) {
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      const credential = GoogleAuthProvider.credential(response.credential);
+      await signInWithCredential(auth, credential);
     } catch(e) {
-      if (e.code !== 'auth/popup-closed-by-user') alert('로그인 실패: ' + e.message);
+      alert('로그인 실패: ' + e.message);
+    }
+  };
+
+  // GSI 초기화 (async 로드 대기)
+  function initGSI() {
+    if (typeof google === 'undefined' || !google?.accounts?.id) {
+      setTimeout(initGSI, 50);
+      return;
+    }
+    google.accounts.id.initialize({
+      client_id:   GSI_CLIENT_ID,
+      callback:    window.handleGoogleCredential,
+      itp_support: true,   // iOS Safari ITP 대응
+      auto_select: false
+    });
+  }
+  initGSI();
+
+  async function signInWithGoogle() {
+    if (typeof google !== 'undefined' && google?.accounts?.id) {
+      // GSI One Tap: 팝업/리다이렉트 없이 구글 UI 오버레이로 로그인
+      google.accounts.id.prompt(notification => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // One Tap 불가 시 기존 팝업으로 fallback
+          signInWithPopup(auth, new GoogleAuthProvider())
+            .catch(e => { if (e.code !== 'auth/popup-closed-by-user') alert('로그인 실패: ' + e.message); });
+        }
+      });
+    } else {
+      // GSI 미로드 시 팝업 fallback
+      signInWithPopup(auth, new GoogleAuthProvider())
+        .catch(e => { if (e.code !== 'auth/popup-closed-by-user') alert('로그인 실패: ' + e.message); });
     }
   }
 
