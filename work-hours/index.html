@@ -688,43 +688,40 @@
   // ── 인증 ─────────────────────────────────────────────────────
   const GSI_CLIENT_ID = '355924897291-4v04uvr27b8c7u7m92ue1gh6ngen68jv.apps.googleusercontent.com';
 
-  // GSI 콜백 (전역 노출 필요)
-  window.handleGoogleCredential = async function(response) {
-    try {
-      const credential = GoogleAuthProvider.credential(response.credential);
-      await signInWithCredential(auth, credential);
-    } catch(e) {
-      alert('로그인 실패: ' + e.message);
-    }
-  };
+  let tokenClient = null;
 
-  // GSI 초기화 (async 로드 대기)
+  // GSI Token Client 초기화 (async 로드 대기)
   function initGSI() {
-    if (typeof google === 'undefined' || !google?.accounts?.id) {
+    if (typeof google === 'undefined' || !google?.accounts?.oauth2) {
       setTimeout(initGSI, 50);
       return;
     }
-    google.accounts.id.initialize({
-      client_id:   GSI_CLIENT_ID,
-      callback:    window.handleGoogleCredential,
-      itp_support: true,   // iOS Safari ITP 대응
-      auto_select: false
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GSI_CLIENT_ID,
+      scope:     'email profile openid',
+      callback:  async (response) => {
+        if (response.error) {
+          alert('로그인 실패: ' + response.error);
+          return;
+        }
+        try {
+          // access_token으로 Firebase 인증
+          const credential = GoogleAuthProvider.credential(null, response.access_token);
+          await signInWithCredential(auth, credential);
+        } catch(e) {
+          alert('로그인 실패: ' + e.message);
+        }
+      }
     });
   }
   initGSI();
 
-  async function signInWithGoogle() {
-    if (typeof google !== 'undefined' && google?.accounts?.id) {
-      // GSI One Tap: 팝업/리다이렉트 없이 구글 UI 오버레이로 로그인
-      google.accounts.id.prompt(notification => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // One Tap 불가 시 기존 팝업으로 fallback
-          signInWithPopup(auth, new GoogleAuthProvider())
-            .catch(e => { if (e.code !== 'auth/popup-closed-by-user') alert('로그인 실패: ' + e.message); });
-        }
-      });
+  function signInWithGoogle() {
+    if (tokenClient) {
+      // 버튼 클릭에서 직접 호출 → 팝업 차단 없음
+      tokenClient.requestAccessToken({ prompt: 'select_account' });
     } else {
-      // GSI 미로드 시 팝업 fallback
+      // GSI 미로드 시 Firebase 팝업 fallback
       signInWithPopup(auth, new GoogleAuthProvider())
         .catch(e => { if (e.code !== 'auth/popup-closed-by-user') alert('로그인 실패: ' + e.message); });
     }
