@@ -713,42 +713,58 @@
     setTimeout(() => splash.remove(), 280);
   }
 
-  // 스플래시 타임아웃: 10초 내 auth 미확인시 로그인 화면으로 fallback
-  const splashTimer = setTimeout(() => {
-    hideSplash();
+  function showApp(user) {
+    currentUser = user;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display    = '';
+    document.getElementById('userPhoto').src   = user.photoURL || '';
+    document.getElementById('userName').textContent  = user.displayName || '사용자';
+    document.getElementById('userEmail').textContent = user.email || '';
+  }
+
+  function showLogin() {
+    currentUser = null;
+    Object.keys(_cache).forEach(k => delete _cache[k]);
     document.getElementById('loginScreen').style.display = '';
-  }, 10000);
+    document.getElementById('mainApp').style.display    = 'none';
+  }
 
-  onAuthStateChanged(auth, async (user) => {
-    clearTimeout(splashTimer);
-    if (user) {
-      currentUser = user;
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('mainApp').style.display    = '';
-      document.getElementById('userPhoto').src   = user.photoURL || '';
-      document.getElementById('userName').textContent  = user.displayName || '사용자';
-      document.getElementById('userEmail').textContent = user.email || '';
+  // ── 앱 초기화: redirect 결과 먼저 처리 후 auth 구독 ────────────
+  async function initAuth() {
+    // 스플래시 타임아웃: 12초 내 처리 안되면 로그인 화면 fallback
+    const splashTimer = setTimeout(() => {
+      hideSplash();
+      showLogin();
+    }, 12000);
 
-      // 캐시 초기화 후 현재 주 로드
-      Object.keys(_cache).forEach(k => delete _cache[k]);
-      document.getElementById('cards').innerHTML =
-        '<div class="loading-box"><div class="spinner"></div><span>불러오는 중…</span></div>';
-      hideSplash();
-      await loadWeek(weekOffset);
-      updateWeekLabel();
-      buildCards();
-      updateCalc();
-    } else {
-      currentUser = null;
-      Object.keys(_cache).forEach(k => delete _cache[k]);
-      document.getElementById('loginScreen').style.display = '';
-      document.getElementById('mainApp').style.display    = 'none';
-      hideSplash();
+    // 리다이렉트 결과 먼저 처리 (모바일 로그인 후 돌아왔을 때)
+    try {
+      await getRedirectResult(auth);
+    } catch(e) {
+      console.warn('redirect 처리 오류:', e.message);
     }
-  });
 
-  // 모바일 리다이렉트 로그인 결과 처리
-  getRedirectResult(auth).catch(e => console.warn('redirect 로그인 오류:', e));
+    // redirect 완료 후 auth 상태 구독
+    onAuthStateChanged(auth, async (user) => {
+      clearTimeout(splashTimer);
+      if (user) {
+        showApp(user);
+        Object.keys(_cache).forEach(k => delete _cache[k]);
+        document.getElementById('cards').innerHTML =
+          '<div class="loading-box"><div class="spinner"></div><span>불러오는 중…</span></div>';
+        hideSplash();
+        await loadWeek(weekOffset);
+        updateWeekLabel();
+        buildCards();
+        updateCalc();
+      } else {
+        showLogin();
+        hideSplash();
+      }
+    });
+  }
+
+  initAuth();
 
   document.getElementById('googleLoginBtn').addEventListener('click', signInWithGoogle);
   document.getElementById('logoutBtn').addEventListener('click', doSignOut);
