@@ -45,7 +45,7 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 48px 40px;
+      padding: 40px 36px;
       text-align: center;
       width: 100%;
       max-width: 380px;
@@ -53,7 +53,72 @@
     }
     .login-card .icon { font-size: 2.8rem; margin-bottom: 16px; }
     .login-card h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
-    .login-card p { font-size: 0.85rem; color: var(--sub); margin-bottom: 32px; line-height: 1.6; }
+    .login-card > p { font-size: 0.85rem; color: var(--sub); margin-bottom: 28px; line-height: 1.6; }
+
+    /* ── 닉네임/PIN 로그인 ── */
+    .pin-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; text-align: left; }
+    .pin-field label { font-size: 0.68rem; font-weight: 600; color: var(--sub); letter-spacing: .3px; text-transform: uppercase; }
+    .pin-field input {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; font-size: 1rem;
+      color: var(--text); background: #fff;
+      transition: border-color .15s, box-shadow .15s;
+      -webkit-appearance: none;
+    }
+    .pin-field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .field-error { font-size: 0.75rem; color: #dc2626; margin-top: 3px; min-height: 1em; }
+    .primary-btn {
+      width: 100%;
+      padding: 13px 20px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+      margin-top: 6px;
+    }
+    .primary-btn:hover { background: #1d4ed8; }
+    .primary-btn:active { background: #1e40af; transform: scale(.98); }
+    .primary-btn:disabled { background: #93c5fd; cursor: not-allowed; }
+    .link-btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      background: none;
+      color: var(--sub);
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-top: 2px;
+      border-radius: 8px;
+      transition: background .15s, color .15s;
+    }
+    .link-btn:hover { background: var(--bg); color: var(--text); }
+    .saved-user { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 20px; }
+    .user-initial-login {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .saved-name { font-size: 1rem; font-weight: 700; }
+    .saved-sub  { font-size: 0.78rem; color: var(--sub); }
+    .divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 18px 0; color: var(--sub); font-size: 0.76rem;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .nick-hint { font-size: 0.72rem; color: var(--sub); line-height: 1.5; margin-top: 4px; }
+    .pin-mode-info { margin-bottom: 16px; text-align: left; }
+    .pin-mode-info .pm-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 2px; }
+    .pin-mode-info .pm-sub  { font-size: 0.78rem; color: var(--sub); }
+
+    /* ── Google 버튼 ── */
     .google-btn {
       display: flex;
       align-items: center;
@@ -91,6 +156,16 @@
       border-radius: 50%;
       object-fit: cover;
       background: #e2e8f0;
+      flex-shrink: 0;
+    }
+    .user-initial-bar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
     .user-info { flex: 1; min-width: 0; }
@@ -269,6 +344,59 @@
       <div class="icon">⏱</div>
       <h1>근무시간 계산기</h1>
       <p>팀원들의 주간 근무시간을<br>함께 기록하고 관리하세요</p>
+
+      <!-- View A: 저장된 닉네임 (PIN만 입력) -->
+      <div id="viewSaved" style="display:none">
+        <div class="saved-user">
+          <div class="user-initial-login" id="savedInitial"></div>
+          <div class="saved-name" id="savedNicknameLabel"></div>
+          <div class="saved-sub">비밀번호를 입력하세요</div>
+        </div>
+        <div class="pin-field">
+          <label>비밀번호 6자리</label>
+          <input id="pinSaved" type="password" inputmode="numeric" maxlength="6"
+            placeholder="• • • • • •" autocomplete="current-password">
+          <div class="field-error" id="pinSavedError"></div>
+        </div>
+        <button class="primary-btn" id="pinSavedSubmit">로그인</button>
+        <button class="link-btn" id="changeAccountBtn">다른 계정으로 로그인</button>
+      </div>
+
+      <!-- View B: 닉네임 입력 -->
+      <div id="viewNickname" style="display:none">
+        <div class="pin-field">
+          <label>닉네임</label>
+          <input id="nicknameInput" type="text" maxlength="20"
+            placeholder="닉네임을 입력하세요" autocomplete="username">
+          <div class="field-error" id="nicknameError"></div>
+          <div class="nick-hint">처음 이용하신다면 원하는 닉네임을 입력하면 자동으로 가입됩니다.</div>
+        </div>
+        <button class="primary-btn" id="nicknameContinue">계속</button>
+      </div>
+
+      <!-- View C: PIN 입력 (로그인 or 신규 등록) -->
+      <div id="viewPin" style="display:none">
+        <div class="pin-mode-info">
+          <div class="pm-name" id="pinModeNickname"></div>
+          <div class="pm-sub" id="pinModeSub"></div>
+        </div>
+        <div class="pin-field">
+          <label>비밀번호 6자리</label>
+          <input id="pinInput" type="password" inputmode="numeric" maxlength="6"
+            placeholder="• • • • • •" autocomplete="current-password">
+          <div class="field-error" id="pinError"></div>
+        </div>
+        <div class="pin-field" id="pinConfirmField" style="display:none">
+          <label>비밀번호 확인</label>
+          <input id="pinConfirmInput" type="password" inputmode="numeric" maxlength="6"
+            placeholder="• • • • • •" autocomplete="new-password">
+        </div>
+        <button class="primary-btn" id="pinSubmit">로그인</button>
+        <button class="link-btn" id="pinBack">← 돌아가기</button>
+      </div>
+
+      <div class="divider"><span>또는</span></div>
+
       <button class="google-btn" id="googleLoginBtn">
         <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
           <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
@@ -284,7 +412,8 @@
   <!-- ── 메인 앱 ── -->
   <div id="mainApp" style="display:none">
     <div class="user-bar">
-      <img class="user-photo" id="userPhoto" src="" alt="">
+      <img class="user-photo" id="userPhoto" src="" alt="" style="display:none">
+      <div class="user-initial-bar" id="userInitialBar" style="display:none"></div>
       <div class="user-info">
         <div class="user-name" id="userName"></div>
         <div class="user-email" id="userEmail"></div>
@@ -348,15 +477,208 @@
   const db    = getFirestore(fbApp);
 
   // ── 상태 ────────────────────────────────────────────────────
-  let currentUser = null;
-  let weekOffset  = 0;
-  const _cache    = {};  // 인메모리 캐시 (source of truth)
+  let currentUser    = null;
+  let weekOffset     = 0;
+  const _cache       = {};
+  const SAVED_NICK   = 'wh_nickname';
 
   // ── 상수 ────────────────────────────────────────────────────
   const DAYS_KO = ['월요일','화요일','수요일','목요일','금요일'];
   const TARGET  = 40 * 3600;
   const LUNCH_S = (11 * 60 + 30) * 60;
   const LUNCH_E = (12 * 60 + 30) * 60;
+
+  // ── 닉네임 인증 헬퍼 ─────────────────────────────────────────
+  async function hashPin(pin) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(pin + '_wh_v1');
+    const buf  = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function fetchNicknameUser(nickname) {
+    try {
+      const snap = await getDoc(doc(db, 'whUsers', nickname));
+      return snap.exists() ? snap.data() : null;
+    } catch(e) {
+      console.warn('사용자 조회 실패:', e.message);
+      return null;
+    }
+  }
+
+  async function registerNicknameUser(nickname, pin) {
+    const pinHash = await hashPin(pin);
+    await setDoc(doc(db, 'whUsers', nickname), {
+      nickname,
+      pinHash,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  // ── 닉네임 로그인 UI 상태 ────────────────────────────────────
+  let pendingNickname = '';
+  let isNewNicknameUser = false;
+
+  function showLoginView(view) {
+    ['viewSaved','viewNickname','viewPin'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+    document.getElementById(view).style.display = '';
+  }
+
+  function initLoginScreen() {
+    const saved = localStorage.getItem(SAVED_NICK);
+    if (saved) {
+      document.getElementById('savedInitial').textContent = saved[0].toUpperCase();
+      document.getElementById('savedNicknameLabel').textContent = saved;
+      document.getElementById('pinSaved').value = '';
+      document.getElementById('pinSavedError').textContent = '';
+      showLoginView('viewSaved');
+      setTimeout(() => document.getElementById('pinSaved').focus(), 100);
+    } else {
+      document.getElementById('nicknameInput').value = '';
+      document.getElementById('nicknameError').textContent = '';
+      showLoginView('viewNickname');
+    }
+  }
+
+  // ── 닉네임 로그인 이벤트 ─────────────────────────────────────
+  document.getElementById('changeAccountBtn').addEventListener('click', () => {
+    localStorage.removeItem(SAVED_NICK);
+    document.getElementById('nicknameInput').value = '';
+    document.getElementById('nicknameError').textContent = '';
+    showLoginView('viewNickname');
+    setTimeout(() => document.getElementById('nicknameInput').focus(), 100);
+  });
+
+  document.getElementById('nicknameContinue').addEventListener('click', async () => {
+    const nickname = document.getElementById('nicknameInput').value.trim();
+    const errEl = document.getElementById('nicknameError');
+    if (!nickname) { errEl.textContent = '닉네임을 입력해주세요.'; return; }
+    errEl.textContent = '';
+
+    const btn = document.getElementById('nicknameContinue');
+    btn.disabled = true;
+    btn.textContent = '확인 중…';
+
+    const userData = await fetchNicknameUser(nickname);
+    btn.disabled = false;
+    btn.textContent = '계속';
+
+    pendingNickname = nickname;
+    isNewNicknameUser = !userData;
+
+    document.getElementById('pinModeNickname').textContent = nickname;
+    document.getElementById('pinModeSub').textContent = userData
+      ? '비밀번호를 입력하세요'
+      : '처음 오셨군요! 사용할 비밀번호 6자리를 설정해주세요';
+    document.getElementById('pinSubmit').textContent = userData ? '로그인' : '등록하기';
+    document.getElementById('pinConfirmField').style.display = userData ? 'none' : '';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinConfirmInput').value = '';
+    document.getElementById('pinError').textContent = '';
+    showLoginView('viewPin');
+    setTimeout(() => document.getElementById('pinInput').focus(), 100);
+  });
+
+  document.getElementById('pinBack').addEventListener('click', () => {
+    showLoginView('viewNickname');
+  });
+
+  document.getElementById('pinSubmit').addEventListener('click', async () => {
+    const pin     = document.getElementById('pinInput').value;
+    const pinConf = document.getElementById('pinConfirmInput').value;
+    const errEl   = document.getElementById('pinError');
+    errEl.textContent = '';
+
+    if (pin.length !== 6 || !/^\d+$/.test(pin)) {
+      errEl.textContent = '비밀번호는 숫자 6자리여야 합니다.';
+      return;
+    }
+    if (isNewNicknameUser && pin !== pinConf) {
+      errEl.textContent = '비밀번호가 일치하지 않습니다.';
+      return;
+    }
+
+    const btn = document.getElementById('pinSubmit');
+    btn.disabled = true;
+    btn.textContent = isNewNicknameUser ? '등록 중…' : '로그인 중…';
+
+    try {
+      if (isNewNicknameUser) {
+        await registerNicknameUser(pendingNickname, pin);
+        loginWithNicknameUser(pendingNickname);
+      } else {
+        const userData = await fetchNicknameUser(pendingNickname);
+        const pinHash  = await hashPin(pin);
+        if (!userData || pinHash !== userData.pinHash) {
+          errEl.textContent = '비밀번호가 올바르지 않습니다.';
+          btn.disabled = false;
+          btn.textContent = '로그인';
+          return;
+        }
+        loginWithNicknameUser(pendingNickname);
+      }
+    } catch(e) {
+      errEl.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
+      btn.disabled = false;
+      btn.textContent = isNewNicknameUser ? '등록하기' : '로그인';
+    }
+  });
+
+  document.getElementById('pinSavedSubmit').addEventListener('click', async () => {
+    const saved = localStorage.getItem(SAVED_NICK);
+    const pin   = document.getElementById('pinSaved').value;
+    const errEl = document.getElementById('pinSavedError');
+    errEl.textContent = '';
+
+    if (pin.length !== 6 || !/^\d+$/.test(pin)) {
+      errEl.textContent = '비밀번호는 숫자 6자리여야 합니다.';
+      return;
+    }
+
+    const btn = document.getElementById('pinSavedSubmit');
+    btn.disabled = true;
+    btn.textContent = '로그인 중…';
+
+    try {
+      const userData = await fetchNicknameUser(saved);
+      const pinHash  = await hashPin(pin);
+      if (!userData || pinHash !== userData.pinHash) {
+        errEl.textContent = '비밀번호가 올바르지 않습니다.';
+        btn.disabled = false;
+        btn.textContent = '로그인';
+        return;
+      }
+      loginWithNicknameUser(saved);
+    } catch(e) {
+      errEl.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
+      btn.disabled = false;
+      btn.textContent = '로그인';
+    }
+  });
+
+  // Enter 키 지원
+  document.getElementById('nicknameInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('nicknameContinue').click();
+  });
+  document.getElementById('pinInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('pinSubmit').click();
+  });
+  document.getElementById('pinConfirmInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('pinSubmit').click();
+  });
+  document.getElementById('pinSaved').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('pinSavedSubmit').click();
+  });
+
+  function loginWithNicknameUser(nickname) {
+    localStorage.setItem(SAVED_NICK, nickname);
+    localStorage.setItem('wh_loggedin', '1');
+    currentUser = { uid: nickname, displayName: nickname, email: null, photoURL: null, isNickname: true };
+    showApp(currentUser);
+    startApp();
+  }
 
   // ── 헬퍼 ────────────────────────────────────────────────────
   function freshDay() {
@@ -386,7 +708,7 @@
 
   function setData(off, data) {
     _cache[off] = data;
-    saveToFirestore(getMondayKey(off), data);  // 비동기 저장
+    saveToFirestore(getMondayKey(off), data);
   }
 
   // ── Firestore CRUD ───────────────────────────────────────────
@@ -695,7 +1017,14 @@
 
   async function doSignOut() {
     if (!confirm('로그아웃 하시겠어요?')) return;
-    await signOut(auth);
+    if (currentUser?.isNickname) {
+      localStorage.removeItem('wh_loggedin');
+      currentUser = null;
+      Object.keys(_cache).forEach(k => delete _cache[k]);
+      showLogin();
+    } else {
+      await signOut(auth);
+    }
   }
 
   function hideSplash() {
@@ -706,19 +1035,42 @@
   }
 
   function showApp(user) {
-    currentUser = user;
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display    = '';
-    document.getElementById('userPhoto').src   = user.photoURL || '';
-    document.getElementById('userName').textContent  = user.displayName || '사용자';
-    document.getElementById('userEmail').textContent = user.email || '';
+    document.getElementById('mainApp').style.display = '';
+
+    if (user.isNickname) {
+      document.getElementById('userPhoto').style.display = 'none';
+      const initBar = document.getElementById('userInitialBar');
+      initBar.style.display = '';
+      initBar.textContent = user.displayName[0].toUpperCase();
+      document.getElementById('userName').textContent = user.displayName;
+      document.getElementById('userEmail').textContent = '';
+    } else {
+      document.getElementById('userInitialBar').style.display = 'none';
+      const photo = document.getElementById('userPhoto');
+      photo.style.display = '';
+      photo.src = user.photoURL || '';
+      document.getElementById('userName').textContent = user.displayName || '사용자';
+      document.getElementById('userEmail').textContent = user.email || '';
+    }
   }
 
   function showLogin() {
-    currentUser = null;
-    Object.keys(_cache).forEach(k => delete _cache[k]);
     document.getElementById('loginScreen').style.display = '';
-    document.getElementById('mainApp').style.display    = 'none';
+    document.getElementById('mainApp').style.display = 'none';
+    initLoginScreen();
+  }
+
+  async function startApp() {
+    Object.keys(_cache).forEach(k => delete _cache[k]);
+    weekOffset = 0;
+    document.getElementById('cards').innerHTML =
+      '<div class="loading-box"><div class="spinner"></div><span>불러오는 중…</span></div>';
+    hideSplash();
+    await loadWeek(weekOffset);
+    updateWeekLabel();
+    buildCards();
+    updateCalc();
   }
 
   // ── 앱 초기화 ────────────────────────────────────────────────
@@ -730,18 +1082,20 @@
   onAuthStateChanged(auth, async (user) => {
     clearTimeout(splashTimer);
     if (user) {
+      currentUser = user;
       showApp(user);
-      Object.keys(_cache).forEach(k => delete _cache[k]);
-      document.getElementById('cards').innerHTML =
-        '<div class="loading-box"><div class="spinner"></div><span>불러오는 중…</span></div>';
-      hideSplash();
-      await loadWeek(weekOffset);
-      updateWeekLabel();
-      buildCards();
-      updateCalc();
+      await startApp();
     } else {
-      showLogin();
-      hideSplash();
+      const savedNick = localStorage.getItem(SAVED_NICK);
+      const loggedIn  = localStorage.getItem('wh_loggedin');
+      if (savedNick && loggedIn) {
+        currentUser = { uid: savedNick, displayName: savedNick, email: null, photoURL: null, isNickname: true };
+        showApp(currentUser);
+        await startApp();
+      } else {
+        showLogin();
+        hideSplash();
+      }
     }
   });
 
