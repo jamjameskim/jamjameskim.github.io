@@ -1,1113 +1,239 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>근무시간 계산기</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>시뮬레이터 홈</title>
   <style>
     :root {
-      --bg: #f0f2f5;
-      --card: #fff;
-      --border: #e2e8f0;
-      --text: #1e293b;
-      --sub: #64748b;
-      --primary: #2563eb;
-      --radius: 16px;
-      --shadow: 0 1px 3px rgba(0,0,0,.08);
+      --bg: #f5efe4;
+      --ink: #201911;
+      --muted: #6c5b4e;
+      --panel: rgba(255, 251, 245, 0.86);
+      --line: rgba(64, 45, 28, 0.12);
+      --accent: #b5572f;
+      --accent-2: #d46000;
+      --accent-3: #1f6b5c;
+      --shadow: 0 24px 60px rgba(54, 37, 24, 0.12);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      margin: 0;
       min-height: 100vh;
+      font-family: "Pretendard", "SUIT", "Noto Sans KR", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(181, 87, 47, 0.12), transparent 28%),
+        linear-gradient(180deg, #f7f1e6 0%, #eadfce 100%);
     }
 
-    /* ── 스플래시 ── */
-    #splashScreen {
-      position: fixed; inset: 0;
-      background: var(--bg);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 100;
-      transition: opacity .25s;
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
     }
-    #splashScreen.fade-out { opacity: 0; pointer-events: none; }
 
-    /* ── 로그인 화면 ── */
-    .login-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+    .hero {
+      padding: 36px;
+      border-radius: 32px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(255, 250, 243, 0.96), rgba(246, 235, 218, 0.86)),
+        #fff;
+      box-shadow: var(--shadow);
     }
-    .login-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 40px 36px;
-      text-align: center;
-      width: 100%;
-      max-width: 380px;
-      box-shadow: 0 4px 24px rgba(0,0,0,.08);
-    }
-    .login-card .icon { font-size: 2.8rem; margin-bottom: 16px; }
-    .login-card h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
-    .login-card > p { font-size: 0.85rem; color: var(--sub); margin-bottom: 28px; line-height: 1.6; }
 
-    /* ── 닉네임/PIN 로그인 ── */
-    .pin-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; text-align: left; }
-    .pin-field label { font-size: 0.68rem; font-weight: 600; color: var(--sub); letter-spacing: .3px; text-transform: uppercase; }
-    .pin-field input {
-      width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
-      padding: 12px 14px; font-size: 1rem;
-      color: var(--text); background: #fff;
-      transition: border-color .15s, box-shadow .15s;
-      -webkit-appearance: none;
+    .eyebrow {
+      display: inline-flex;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(181, 87, 47, 0.12);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
-    .pin-field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
-    .field-error { font-size: 0.75rem; color: #dc2626; margin-top: 3px; min-height: 1em; }
-    .primary-btn {
-      width: 100%;
-      padding: 13px 20px;
-      border: none;
-      border-radius: 12px;
-      background: var(--primary);
-      color: #fff;
-      font-size: 0.92rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background .15s, transform .1s;
-      margin-top: 6px;
-    }
-    .primary-btn:hover { background: #1d4ed8; }
-    .primary-btn:active { background: #1e40af; transform: scale(.98); }
-    .primary-btn:disabled { background: #93c5fd; cursor: not-allowed; }
-    .link-btn {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      background: none;
-      color: var(--sub);
-      font-size: 0.8rem;
-      cursor: pointer;
-      margin-top: 2px;
-      border-radius: 8px;
-      transition: background .15s, color .15s;
-    }
-    .link-btn:hover { background: var(--bg); color: var(--text); }
-    .saved-user { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 20px; }
-    .user-initial-login {
-      width: 56px; height: 56px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: #fff;
-      font-size: 1.5rem;
-      font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .saved-name { font-size: 1rem; font-weight: 700; }
-    .saved-sub  { font-size: 0.78rem; color: var(--sub); }
-    .divider {
-      display: flex; align-items: center; gap: 10px;
-      margin: 18px 0; color: var(--sub); font-size: 0.76rem;
-    }
-    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-    .nick-hint { font-size: 0.72rem; color: var(--sub); line-height: 1.5; margin-top: 4px; }
-    .pin-mode-info { margin-bottom: 16px; text-align: left; }
-    .pin-mode-info .pm-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 2px; }
-    .pin-mode-info .pm-sub  { font-size: 0.78rem; color: var(--sub); }
 
-    /* ── Google 버튼 ── */
-    .google-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 12px 20px;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      background: white;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text);
-      cursor: pointer;
-      transition: background .15s, box-shadow .15s;
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.02;
+      letter-spacing: -0.05em;
     }
-    .google-btn:hover { background: #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
-    .google-btn:active { background: #f1f5f9; }
-    .google-btn svg { flex-shrink: 0; }
 
-    /* ── 유저 바 ── */
-    .user-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 16px;
-      background: var(--card);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 10;
+    .hero p {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.7;
     }
-    .user-photo {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
-      background: #e2e8f0;
-      flex-shrink: 0;
-    }
-    .user-initial-bar {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: #fff;
-      font-size: 0.88rem;
-      font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .user-info { flex: 1; min-width: 0; }
-    .user-name  { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .user-email { font-size: 0.68rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .logout-btn {
-      flex-shrink: 0;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 5px 12px;
-      font-size: 0.76rem;
-      color: var(--sub);
-      background: none;
-      cursor: pointer;
-      transition: background .15s;
-    }
-    .logout-btn:hover { background: var(--bg); }
 
-    /* ── 메인 앱 ── */
-    .wrap { max-width: 560px; margin: 0 auto; padding: 16px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
 
-    /* ── 로딩 ── */
-    .loading-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 48px 16px;
-      color: var(--sub);
-      font-size: 0.85rem;
+    .card {
+      display: grid;
+      gap: 18px;
+      padding: 26px;
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
     }
-    .spinner {
-      width: 28px; height: 28px;
-      border: 3px solid #e2e8f0;
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── 헤더 ── */
-    .header { margin-bottom: 18px; }
-    .header h1 { font-size: 1.25rem; font-weight: 800; margin-bottom: 12px; }
-    .week-nav {
-      display: flex; align-items: center;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 4px;
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(181, 87, 47, 0.24);
+      box-shadow: 0 28px 65px rgba(54, 37, 24, 0.16);
     }
-    .week-nav button {
-      background: none; border: none;
-      border-radius: 8px; padding: 9px 14px;
-      cursor: pointer; font-size: 0.85rem; color: var(--sub);
-      flex-shrink: 0; transition: background .15s;
-    }
-    .week-nav button:active { background: var(--bg); }
-    #weekLabel { flex: 1; text-align: center; font-size: 0.88rem; font-weight: 600; }
 
-    /* ── 요약 ── */
-    .summary-row {
-      display: flex; gap: 10px;
-      overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px;
-      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    .card-type-new {
+      display: inline-flex;
+      width: fit-content;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(228, 59, 59, 0.12);
+      color: var(--accent-2);
     }
-    .summary-row::-webkit-scrollbar { display: none; }
-    .s-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; padding: 13px 16px;
-      text-align: center; flex-shrink: 0; min-width: 128px;
-    }
-    .s-lbl { font-size: 0.66rem; color: var(--sub); font-weight: 500; margin-bottom: 4px; }
-    .s-val { font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .c-blue  .s-val { color: var(--primary); }
-    .c-green .s-val { color: #16a34a; }
-    .c-red   .s-val { color: #dc2626; }
-    .c-gray  .s-val { color: var(--sub); }
 
-    /* ── 프로그레스 ── */
-    .progress {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; padding: 14px 16px; margin-bottom: 14px;
+    .card-type-existing {
+      display: inline-flex;
+      width: fit-content;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(32, 107, 92, 0.12);
+      color: var(--accent-3);
     }
-    .prog-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; font-size: 0.82rem; }
-    .prog-head b { font-weight: 600; }
-    .prog-head span { color: var(--sub); font-size: 0.76rem; }
-    .bar-track { height: 6px; background: #e2e8f0; border-radius: 100px; overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 100px; transition: width .35s; }
-    .bar-fill.under { background: #f59e0b; }
-    .bar-fill.ok    { background: var(--primary); }
-    .bar-fill.over  { background: #16a34a; }
 
-    /* ── 요일 카드 ── */
-    .day-card {
-      background: var(--card); border: 1.5px solid var(--border);
-      border-radius: var(--radius); box-shadow: var(--shadow);
-      margin-bottom: 12px; overflow: hidden; transition: border-color .15s;
+    .card h2 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
     }
-    .day-card.s-holiday { border-color: #93c5fd; background: #eff6ff; }
-    .day-card.s-annual  { border-color: #c4b5fd; background: #f5f3ff; }
-    .day-card.s-half    { border-color: #fcd34d; background: #fffbeb; }
-    .day-card.s-quarter { border-color: #6ee7b7; background: #f0fdf4; }
-    .day-card.s-today   { border-color: var(--primary); }
-    .c-head {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 13px 16px 11px; border-bottom: 1px solid var(--border);
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
     }
-    .c-head-left .d-name { font-size: 0.95rem; font-weight: 700; }
-    .c-head-left .d-date { font-size: 0.7rem; color: var(--sub); margin-top: 1px; }
-    .c-head-left.today .d-name { color: var(--primary); }
-    .holiday-lbl {
-      display: flex; align-items: center; gap: 6px;
-      cursor: pointer; user-select: none;
-      font-size: 0.76rem; color: var(--sub);
-      padding: 6px 10px; border-radius: 8px; transition: background .15s;
+
+    .points {
+      display: grid;
+      gap: 8px;
+      color: var(--ink);
+      font-size: 14px;
     }
-    .holiday-lbl:active { background: rgba(0,0,0,.06); }
-    .holiday-lbl input { accent-color: var(--primary); width: 15px; height: 15px; cursor: pointer; }
-    .c-body { padding: 14px 16px; }
-    .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-    .t-field { display: flex; flex-direction: column; gap: 5px; }
-    .t-field label { font-size: 0.68rem; font-weight: 600; color: var(--sub); letter-spacing: .3px; text-transform: uppercase; }
-    .t-input {
-      width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
-      padding: 10px 12px; font-size: 1.05rem; font-weight: 600;
-      font-variant-numeric: tabular-nums; letter-spacing: .5px;
-      color: var(--text); background: #fff;
-      transition: border-color .15s, box-shadow .15s; -webkit-appearance: none;
+
+    .point {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.66);
+      border: 1px solid rgba(64, 45, 28, 0.08);
     }
-    .t-input::placeholder { color: #cbd5e1; font-weight: 400; font-size: 0.9rem; letter-spacing: 0; }
-    .t-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
-    .t-input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
-    .t-hint { display: inline-block; margin-top: 5px; font-size: 0.69rem; font-weight: 500; padding: 3px 8px; border-radius: 6px; }
-    .t-hint.need { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-    .t-hint.done { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-    .t-hint strong { font-weight: 700; }
-    .l-field { display: flex; flex-direction: column; gap: 5px; }
-    .l-field label { font-size: 0.68rem; font-weight: 600; color: var(--sub); letter-spacing: .3px; text-transform: uppercase; }
-    .l-select {
-      width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
-      padding: 10px 32px 10px 12px; font-size: 0.9rem; color: var(--text);
-      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2364748b' d='M5 6L0 0h10z'/%3E%3C/svg%3E") no-repeat right 12px center;
-      appearance: none; -webkit-appearance: none; cursor: pointer; transition: border-color .15s;
+
+    .arrow {
+      font-weight: 800;
+      color: var(--accent);
     }
-    .l-select:focus { outline: none; border-color: var(--primary); }
-    .l-select:disabled { background-color: #f8fafc; color: #94a3b8; cursor: not-allowed; }
-    .c-foot { display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid var(--border); }
-    .f-cell { padding: 12px 8px; text-align: center; border-right: 1px solid var(--border); }
-    .f-cell:last-child { border-right: none; }
-    .f-lbl { font-size: 0.64rem; color: var(--sub); font-weight: 500; margin-bottom: 4px; }
-    .f-val { font-size: 0.92rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .f-val.blue  { color: var(--primary); }
-    .f-val.muted { color: #cbd5e1; font-weight: 400; }
-    .badge { display: inline-block; padding: 2px 9px; border-radius: 100px; font-size: 0.69rem; font-weight: 600; }
-    .b-holiday { background: #dbeafe; color: #1d4ed8; }
-    .b-annual  { background: #ede9fe; color: #6d28d9; }
-    .b-half    { background: #fef3c7; color: #92400e; }
-    .b-quarter { background: #d1fae5; color: #065f46; }
-    .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 14px; padding: 0 2px; font-size: 0.7rem; color: var(--sub); }
-    .leg { display: flex; align-items: center; gap: 5px; }
-    .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .note { margin-top: 8px; font-size: 0.68rem; color: var(--sub); padding: 0 2px; line-height: 1.5; }
+
+    @media (max-width: 840px) {
+      .page {
+        padding: 18px 12px 28px;
+      }
+
+      .hero {
+        padding: 24px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="page">
+    <section class="hero">
+      <span class="eyebrow">Simulator Hub</span>
+      <h1>Hello 👋</h1>
+      <p>
+        목적에 맞는 자료로 바로 이동할 수 있게 홈을 새로 구성했습니다.
+      </p>
+    </section>
 
-  <!-- ── 스플래시 (auth 확인 중) ── -->
-  <div id="splashScreen">
-    <div class="spinner"></div>
+    <section class="grid">
+       <a class="card" href="./research-mart-location.html">
+        <span class="card-type-new">New</span>
+        <h2>2026 2분기 설문 참여 마트 지도</h2>
+        <p>
+          2026 2분기 설문 참여 마트 지도 위치를 시각화했습니다..
+        </p>
+        <div class="points">
+          <div class="point">총 마트 26개</div>
+          <div class="point">1시간 내외 거리 11개 (인터뷰 비동의: 4개)</div>
+          <div class="point"><span class="arrow">열기 →</span> `2026 2분기 설문 참여 마트 지도`</div>
+        </div>
+      </a>
+      
+      <a class="card" href="./purchase-rank-simulator.html">
+        <span class="card-type-existing">Existing</span>
+        <h2>구매기록 랭킹 변동 시뮬레이터</h2>
+        <p>
+          상품 시트와 구매 기록 시트를 담은 엑셀을 업로드하면, 특정 기간 동안 일자별 점수와 순위 변화를 계산해 보여줍니다.
+        </p>
+        <div class="points">
+          <div class="point">최근 30일 구매수, 누적 구매수, 마지막 구매일 감점을 반영</div>
+          <div class="point">동점 시 최근 구매일 → 구매 횟수 → 상품명 순으로 자동 정렬</div>
+          <div class="point"><span class="arrow">열기 →</span> `구매기록 랭킹 변동 시뮬레이터`</div>
+        </div>
+      </a>
+
+      <a class="card" href="./work-hours/">
+        <span class="card-type-new">New</span>
+        <h2>유연근무제 출퇴근 기록</h2>
+        <p>
+          유연근무제 출퇴근 기록 -> 편하게 계산해보세요.
+        </p>
+        <div class="points">
+          <div class="point">초단위로 입력</div>
+          <div class="point">모바일 대응</div>
+          <div class="point"><span class="arrow">열기 →</span> `유연근무제 출퇴근 기록`</div>
+        </div>
+      </a>
+
+      <a class="card" href="./home-fresh-simulator.html">
+        <span class="card-type-existing">Existing</span>
+        <h2>기존 홈프레시 카드 정렬 시뮬레이터</h2>
+        <p>
+          기존에 사용하던 상품 카드 정렬 시뮬레이터는 그대로 유지하면서, 파일명만 별도로 분리했습니다.
+        </p>
+        <div class="points">
+          <div class="point">기존 입력 방식과 결과 화면을 그대로 유지</div>
+          <div class="point">새 홈에서 다른 시뮬레이터와 함께 접근 가능</div>
+          <div class="point"><span class="arrow">열기 →</span> `기존 홈프레시 카드 정렬 시뮬레이터`</div>
+        </div>
+      </a>
+    </section>
   </div>
-
-  <!-- ── 로그인 화면 ── -->
-  <div id="loginScreen" class="login-screen" style="display:none">
-    <div class="login-card">
-      <div class="icon">⏱</div>
-      <h1>근무시간 계산기</h1>
-      <p>팀원들의 주간 근무시간을<br>함께 기록하고 관리하세요</p>
-
-      <!-- View A: 저장된 닉네임 (PIN만 입력) -->
-      <div id="viewSaved" style="display:none">
-        <div class="saved-user">
-          <div class="user-initial-login" id="savedInitial"></div>
-          <div class="saved-name" id="savedNicknameLabel"></div>
-          <div class="saved-sub">비밀번호를 입력하세요</div>
-        </div>
-        <div class="pin-field">
-          <label>비밀번호 6자리</label>
-          <input id="pinSaved" type="password" inputmode="numeric" maxlength="6"
-            placeholder="• • • • • •" autocomplete="current-password">
-          <div class="field-error" id="pinSavedError"></div>
-        </div>
-        <button class="primary-btn" id="pinSavedSubmit">로그인</button>
-        <button class="link-btn" id="changeAccountBtn">다른 계정으로 로그인</button>
-      </div>
-
-      <!-- View B: 닉네임 입력 -->
-      <div id="viewNickname" style="display:none">
-        <div class="pin-field">
-          <label>닉네임</label>
-          <input id="nicknameInput" type="text" maxlength="20"
-            placeholder="닉네임을 입력하세요" autocomplete="username">
-          <div class="field-error" id="nicknameError"></div>
-          <div class="nick-hint">처음 이용하신다면 원하는 닉네임을 입력하면 자동으로 가입됩니다.</div>
-        </div>
-        <button class="primary-btn" id="nicknameContinue">계속</button>
-      </div>
-
-      <!-- View C: PIN 입력 (로그인 or 신규 등록) -->
-      <div id="viewPin" style="display:none">
-        <div class="pin-mode-info">
-          <div class="pm-name" id="pinModeNickname"></div>
-          <div class="pm-sub" id="pinModeSub"></div>
-        </div>
-        <div class="pin-field">
-          <label>비밀번호 6자리</label>
-          <input id="pinInput" type="password" inputmode="numeric" maxlength="6"
-            placeholder="• • • • • •" autocomplete="current-password">
-          <div class="field-error" id="pinError"></div>
-        </div>
-        <div class="pin-field" id="pinConfirmField" style="display:none">
-          <label>비밀번호 확인</label>
-          <input id="pinConfirmInput" type="password" inputmode="numeric" maxlength="6"
-            placeholder="• • • • • •" autocomplete="new-password">
-        </div>
-        <button class="primary-btn" id="pinSubmit">로그인</button>
-        <button class="link-btn" id="pinBack">← 돌아가기</button>
-      </div>
-
-      <div class="divider"><span>또는</span></div>
-
-      <button class="google-btn" id="googleLoginBtn">
-        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-          <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-          <path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/>
-          <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 6.294C4.672 4.167 6.656 3.58 9 3.58z" fill="#EA4335"/>
-        </svg>
-        Google로 시작하기
-      </button>
-    </div>
-  </div>
-
-  <!-- ── 메인 앱 ── -->
-  <div id="mainApp" style="display:none">
-    <div class="user-bar">
-      <img class="user-photo" id="userPhoto" src="" alt="" style="display:none">
-      <div class="user-initial-bar" id="userInitialBar" style="display:none"></div>
-      <div class="user-info">
-        <div class="user-name" id="userName"></div>
-        <div class="user-email" id="userEmail"></div>
-      </div>
-      <button class="logout-btn" id="logoutBtn">로그아웃</button>
-    </div>
-
-    <div class="wrap">
-      <div class="header">
-        <h1>근무시간 계산기</h1>
-        <div class="week-nav">
-          <button onclick="changeWeek(-1)">&#9664;</button>
-          <span id="weekLabel"></span>
-          <button onclick="changeWeek(1)">&#9654;</button>
-        </div>
-      </div>
-
-      <div class="summary-row" id="summary"></div>
-
-      <div class="progress">
-        <div class="prog-head">
-          <b>주간 목표 달성률</b>
-          <span id="progMeta"></span>
-        </div>
-        <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
-      </div>
-
-      <div id="cards"></div>
-
-      <div class="legend">
-        <div class="leg"><div class="leg-dot" style="background:#93c5fd"></div>공휴일 (8h 인정)</div>
-        <div class="leg"><div class="leg-dot" style="background:#c4b5fd"></div>연차 (8h 차감)</div>
-        <div class="leg"><div class="leg-dot" style="background:#fde68a"></div>반차 (4h 차감)</div>
-        <div class="leg"><div class="leg-dot" style="background:#6ee7b7"></div>반반차 (2h 차감)</div>
-      </div>
-      <div class="note">
-        * 점심시간(11:30~12:30)은 실근무시간에서 자동 제외됩니다.<br>
-        * 시간 입력: 숫자 입력 후 자동 변환 (예: 0930 → 09:30:00, 093045 → 09:30:45)
-      </div>
-    </div>
-  </div>
-
-<script type="module">
-  import { initializeApp }                              from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-  import { getAuth, GoogleAuthProvider,
-           signInWithPopup, signOut,
-           onAuthStateChanged }                         from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-  import { getFirestore, doc, getDoc, setDoc }         from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-
-  // ── Firebase 초기화 ─────────────────────────────────────────
-  const firebaseConfig = {
-    apiKey:            "AIzaSyALlWLJ6OhnQ6cDV9zbJv2Qj_dmgpSTISI",
-    authDomain:        "freework-schedule-manage.firebaseapp.com",
-    projectId:         "freework-schedule-manage",
-    storageBucket:     "freework-schedule-manage.firebasestorage.app",
-    messagingSenderId: "355924897291",
-    appId:             "1:355924897291:web:3c6ff37916c371b75ba10e"
-  };
-  const fbApp = initializeApp(firebaseConfig);
-  const auth  = getAuth(fbApp);
-  const db    = getFirestore(fbApp);
-
-  // ── 상태 ────────────────────────────────────────────────────
-  let currentUser    = null;
-  let weekOffset     = 0;
-  const _cache       = {};
-  const SAVED_NICK   = 'wh_nickname';
-
-  // ── 상수 ────────────────────────────────────────────────────
-  const DAYS_KO = ['월요일','화요일','수요일','목요일','금요일'];
-  const TARGET  = 40 * 3600;
-  const LUNCH_S = (11 * 60 + 30) * 60;
-  const LUNCH_E = (12 * 60 + 30) * 60;
-
-  // ── 닉네임 인증 헬퍼 ─────────────────────────────────────────
-  async function hashPin(pin) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(pin + '_wh_v1');
-    const buf  = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-  }
-
-  async function fetchNicknameUser(nickname) {
-    try {
-      const snap = await getDoc(doc(db, 'whUsers', nickname));
-      return snap.exists() ? snap.data() : null;
-    } catch(e) {
-      console.warn('사용자 조회 실패:', e.message);
-      return null;
-    }
-  }
-
-  async function registerNicknameUser(nickname, pin) {
-    const pinHash = await hashPin(pin);
-    await setDoc(doc(db, 'whUsers', nickname), {
-      nickname,
-      pinHash,
-      createdAt: new Date().toISOString()
-    });
-  }
-
-  // ── 닉네임 로그인 UI 상태 ────────────────────────────────────
-  let pendingNickname = '';
-  let isNewNicknameUser = false;
-
-  function showLoginView(view) {
-    ['viewSaved','viewNickname','viewPin'].forEach(id => {
-      document.getElementById(id).style.display = 'none';
-    });
-    document.getElementById(view).style.display = '';
-  }
-
-  function initLoginScreen() {
-    const saved = localStorage.getItem(SAVED_NICK);
-    if (saved) {
-      document.getElementById('savedInitial').textContent = saved[0].toUpperCase();
-      document.getElementById('savedNicknameLabel').textContent = saved;
-      document.getElementById('pinSaved').value = '';
-      document.getElementById('pinSavedError').textContent = '';
-      showLoginView('viewSaved');
-      setTimeout(() => document.getElementById('pinSaved').focus(), 100);
-    } else {
-      document.getElementById('nicknameInput').value = '';
-      document.getElementById('nicknameError').textContent = '';
-      showLoginView('viewNickname');
-    }
-  }
-
-  // ── 닉네임 로그인 이벤트 ─────────────────────────────────────
-  document.getElementById('changeAccountBtn').addEventListener('click', () => {
-    localStorage.removeItem(SAVED_NICK);
-    document.getElementById('nicknameInput').value = '';
-    document.getElementById('nicknameError').textContent = '';
-    showLoginView('viewNickname');
-    setTimeout(() => document.getElementById('nicknameInput').focus(), 100);
-  });
-
-  document.getElementById('nicknameContinue').addEventListener('click', async () => {
-    const nickname = document.getElementById('nicknameInput').value.trim();
-    const errEl = document.getElementById('nicknameError');
-    if (!nickname) { errEl.textContent = '닉네임을 입력해주세요.'; return; }
-    errEl.textContent = '';
-
-    const btn = document.getElementById('nicknameContinue');
-    btn.disabled = true;
-    btn.textContent = '확인 중…';
-
-    const userData = await fetchNicknameUser(nickname);
-    btn.disabled = false;
-    btn.textContent = '계속';
-
-    pendingNickname = nickname;
-    isNewNicknameUser = !userData;
-
-    document.getElementById('pinModeNickname').textContent = nickname;
-    document.getElementById('pinModeSub').textContent = userData
-      ? '비밀번호를 입력하세요'
-      : '처음 오셨군요! 사용할 비밀번호 6자리를 설정해주세요';
-    document.getElementById('pinSubmit').textContent = userData ? '로그인' : '등록하기';
-    document.getElementById('pinConfirmField').style.display = userData ? 'none' : '';
-    document.getElementById('pinInput').value = '';
-    document.getElementById('pinConfirmInput').value = '';
-    document.getElementById('pinError').textContent = '';
-    showLoginView('viewPin');
-    setTimeout(() => document.getElementById('pinInput').focus(), 100);
-  });
-
-  document.getElementById('pinBack').addEventListener('click', () => {
-    showLoginView('viewNickname');
-  });
-
-  document.getElementById('pinSubmit').addEventListener('click', async () => {
-    const pin     = document.getElementById('pinInput').value;
-    const pinConf = document.getElementById('pinConfirmInput').value;
-    const errEl   = document.getElementById('pinError');
-    errEl.textContent = '';
-
-    if (pin.length !== 6 || !/^\d+$/.test(pin)) {
-      errEl.textContent = '비밀번호는 숫자 6자리여야 합니다.';
-      return;
-    }
-    if (isNewNicknameUser && pin !== pinConf) {
-      errEl.textContent = '비밀번호가 일치하지 않습니다.';
-      return;
-    }
-
-    const btn = document.getElementById('pinSubmit');
-    btn.disabled = true;
-    btn.textContent = isNewNicknameUser ? '등록 중…' : '로그인 중…';
-
-    try {
-      if (isNewNicknameUser) {
-        await registerNicknameUser(pendingNickname, pin);
-        loginWithNicknameUser(pendingNickname);
-      } else {
-        const userData = await fetchNicknameUser(pendingNickname);
-        const pinHash  = await hashPin(pin);
-        if (!userData || pinHash !== userData.pinHash) {
-          errEl.textContent = '비밀번호가 올바르지 않습니다.';
-          btn.disabled = false;
-          btn.textContent = '로그인';
-          return;
-        }
-        loginWithNicknameUser(pendingNickname);
-      }
-    } catch(e) {
-      errEl.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
-      btn.disabled = false;
-      btn.textContent = isNewNicknameUser ? '등록하기' : '로그인';
-    }
-  });
-
-  document.getElementById('pinSavedSubmit').addEventListener('click', async () => {
-    const saved = localStorage.getItem(SAVED_NICK);
-    const pin   = document.getElementById('pinSaved').value;
-    const errEl = document.getElementById('pinSavedError');
-    errEl.textContent = '';
-
-    if (pin.length !== 6 || !/^\d+$/.test(pin)) {
-      errEl.textContent = '비밀번호는 숫자 6자리여야 합니다.';
-      return;
-    }
-
-    const btn = document.getElementById('pinSavedSubmit');
-    btn.disabled = true;
-    btn.textContent = '로그인 중…';
-
-    try {
-      const userData = await fetchNicknameUser(saved);
-      const pinHash  = await hashPin(pin);
-      if (!userData || pinHash !== userData.pinHash) {
-        errEl.textContent = '비밀번호가 올바르지 않습니다.';
-        btn.disabled = false;
-        btn.textContent = '로그인';
-        return;
-      }
-      loginWithNicknameUser(saved);
-    } catch(e) {
-      errEl.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
-      btn.disabled = false;
-      btn.textContent = '로그인';
-    }
-  });
-
-  // Enter 키 지원
-  document.getElementById('nicknameInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('nicknameContinue').click();
-  });
-  document.getElementById('pinInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('pinSubmit').click();
-  });
-  document.getElementById('pinConfirmInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('pinSubmit').click();
-  });
-  document.getElementById('pinSaved').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('pinSavedSubmit').click();
-  });
-
-  function loginWithNicknameUser(nickname) {
-    localStorage.setItem(SAVED_NICK, nickname);
-    localStorage.setItem('wh_loggedin', '1');
-    currentUser = { uid: nickname, displayName: nickname, email: null, photoURL: null, isNickname: true };
-    showApp(currentUser);
-    startApp();
-  }
-
-  // ── 헬퍼 ────────────────────────────────────────────────────
-  function freshDay() {
-    return { holiday: false, checkin: '', checkout: '', leave: 'none' };
-  }
-
-  function weekDays(off) {
-    const today = new Date();
-    const dow   = today.getDay();
-    const mon   = new Date(today);
-    mon.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1) + off * 7);
-    return Array.from({ length: 5 }, (_, i) => {
-      const d = new Date(mon);
-      d.setDate(mon.getDate() + i);
-      return d;
-    });
-  }
-
-  function getMondayKey(off) {
-    const mon = weekDays(off)[0];
-    return `${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
-  }
-
-  function getData(off) {
-    return _cache[off] || Array.from({ length: 5 }, freshDay);
-  }
-
-  function setData(off, data) {
-    _cache[off] = data;
-    saveToFirestore(getMondayKey(off), data);
-  }
-
-  // ── Firestore CRUD ───────────────────────────────────────────
-  async function loadFromFirestore(weekKey) {
-    if (!currentUser) return null;
-    try {
-      const timeout = new Promise((_, rej) =>
-        setTimeout(() => rej(new Error('timeout')), 6000));
-      const snap = await Promise.race([
-        getDoc(doc(db, 'workHours', `${currentUser.uid}_${weekKey}`)),
-        timeout
-      ]);
-      if (!snap.exists()) return null;
-      return snap.data().days.map(d => Object.assign(freshDay(), d));
-    } catch(e) {
-      console.warn('Firestore 읽기 실패 (오프라인 또는 DB 미생성):', e.message);
-      return null;
-    }
-  }
-
-  function saveToFirestore(weekKey, days) {
-    if (!currentUser) return;
-    setDoc(doc(db, 'workHours', `${currentUser.uid}_${weekKey}`), {
-      uid: currentUser.uid,
-      weekKey,
-      days,
-      updatedAt: new Date().toISOString()
-    }).catch(e => console.error('Firestore 저장 실패:', e));
-  }
-
-  async function loadWeek(off) {
-    if (_cache[off]) return;
-    const weekKey = getMondayKey(off);
-    const days    = await loadFromFirestore(weekKey);
-    _cache[off]   = days || Array.from({ length: 5 }, freshDay);
-  }
-
-  // ── 계산 ────────────────────────────────────────────────────
-  function toSec(t) {
-    if (!t) return null;
-    const parts = t.split(':').map(Number);
-    if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
-    return parts[0]*3600 + parts[1]*60;
-  }
-
-  function fmt(sec) {
-    if (sec === null || sec === undefined) return '—';
-    const sign = sec < 0 ? '-' : '';
-    const abs  = Math.abs(sec);
-    return sign
-      + String(Math.floor(abs / 3600)).padStart(2,'0') + ':'
-      + String(Math.floor((abs % 3600) / 60)).padStart(2,'0') + ':'
-      + String(abs % 60).padStart(2,'0');
-  }
-
-  function calcDay(d) {
-    if (d.holiday) return { work: 8*3600, real: 8*3600, leave: 0 };
-    const leaveMap = { none: 0, annual: 8*3600, half: 4*3600, quarter: 2*3600 };
-    const leaveSec = leaveMap[d.leave] ?? 0;
-    if (d.leave === 'annual') return { work: 0, real: 0, leave: 8*3600 };
-    const inn = toSec(d.checkin), out = toSec(d.checkout);
-    if (inn === null || out === null || out <= inn) return { work: 0, real: 0, leave: leaveSec };
-    const work = out - inn;
-    const ov   = Math.max(0, Math.min(out, LUNCH_E) - Math.max(inn, LUNCH_S));
-    return { work, real: work - ov, leave: leaveSec };
-  }
-
-  function countedExcluding(data, idx) {
-    return data.reduce((s, d, i) => {
-      if (i === idx) return s;
-      const c = calcDay(d);
-      return s + c.real + c.leave;
-    }, 0);
-  }
-
-  function calcRequiredCheckout(checkinSec, needed) {
-    if (needed <= 0) return null;
-    let co = checkinSec + needed;
-    for (let k = 0; k < 3; k++) {
-      const ov = Math.max(0, Math.min(co, LUNCH_E) - Math.max(checkinSec, LUNCH_S));
-      co = checkinSec + needed + ov;
-    }
-    return co;
-  }
-
-  // ── 시간 입력 ────────────────────────────────────────────────
-  function parseDigits(raw) { return raw.replace(/\D/g, '').slice(0, 6); }
-
-  function digitsToTime(digits) {
-    if (digits.length < 2) return null;
-    const p = digits.padEnd(6, '0');
-    const h = parseInt(p.slice(0,2)), m = parseInt(p.slice(2,4)), s = parseInt(p.slice(4,6));
-    if (h > 23 || m > 59 || s > 59) return null;
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  }
-
-  function displayDigits(digits) {
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 4) return digits.slice(0,2) + ':' + digits.slice(2);
-    return digits.slice(0,2) + ':' + digits.slice(2,4) + ':' + digits.slice(4);
-  }
-
-  function onTimeInput(el) {
-    const digits = parseDigits(el.value);
-    el.value = displayDigits(digits);
-    try { el.setSelectionRange(el.value.length, el.value.length); } catch(e) {}
-
-    if (digits.length >= 4) {
-      const parsed = digitsToTime(digits);
-      if (parsed) {
-        const parts = el.id.split('-');
-        const i     = parseInt(parts[1]);
-        const field = parts[2] === 'in' ? 'checkin' : 'checkout';
-        const data  = getData(weekOffset);
-        if (data[i][field] !== parsed) {
-          data[i][field] = parsed;
-          setData(weekOffset, data);
-          updateCalc();
-        }
-      }
-    }
-  }
-
-  function onTimeBlur(el, idx, field) {
-    const digits = parseDigits(el.value);
-    const data   = getData(weekOffset);
-    const d      = data[idx];
-
-    if (digits.length === 0) {
-      d[field] = ''; el.value = '';
-    } else {
-      const parsed = digitsToTime(digits);
-      if (parsed) { d[field] = parsed; el.value = parsed; }
-      else        { el.value = d[field]; }
-    }
-    setData(weekOffset, data);
-    updateCalc();
-  }
-
-  function onHoliday(i, val) {
-    const data = getData(weekOffset);
-    data[i].holiday = val;
-    if (val) data[i].leave = 'none';
-    setData(weekOffset, data);
-    buildCards(); updateCalc();
-  }
-
-  function onLeave(i, val) {
-    const data = getData(weekOffset);
-    data[i].leave = val;
-    if (val === 'annual') { data[i].checkin = ''; data[i].checkout = ''; }
-    setData(weekOffset, data);
-    buildCards(); updateCalc();
-  }
-
-  async function changeWeek(dir) {
-    weekOffset += dir;
-    updateWeekLabel();
-    if (!_cache[weekOffset]) {
-      document.getElementById('cards').innerHTML =
-        '<div class="loading-box"><div class="spinner"></div><span>불러오는 중…</span></div>';
-      await loadWeek(weekOffset);
-    }
-    buildCards(); updateCalc();
-  }
-
-  // ── UI 빌드 ──────────────────────────────────────────────────
-  function updateWeekLabel() {
-    const dates = weekDays(weekOffset);
-    const s = dates[0], e = dates[4];
-    document.getElementById('weekLabel').textContent =
-      `${s.getFullYear()}년 ${s.getMonth()+1}월 ${s.getDate()}일 — ${e.getMonth()+1}월 ${e.getDate()}일`;
-  }
-
-  function buildCards() {
-    const dates    = weekDays(weekOffset);
-    const data     = getData(weekOffset);
-    const todayStr = new Date().toDateString();
-    const frag     = document.createDocumentFragment();
-
-    dates.forEach((date, i) => {
-      const d       = data[i];
-      const isToday = date.toDateString() === todayStr;
-      const locked  = d.holiday || d.leave === 'annual';
-
-      let cls = 'day-card';
-      if (d.holiday)              cls += ' s-holiday';
-      else if (d.leave==='annual') cls += ' s-annual';
-      else if (d.leave==='half')   cls += ' s-half';
-      else if (d.leave==='quarter') cls += ' s-quarter';
-      if (isToday) cls += ' s-today';
-
-      const leaveCtrl = d.holiday
-        ? `<div class="badge b-holiday" style="padding:9px 14px;display:block;text-align:center;">공휴일 · 8시간 인정</div>`
-        : `<select class="l-select" onchange="onLeave(${i},this.value)">
-             <option value="none"    ${d.leave==='none'?'selected':''}>— 없음</option>
-             <option value="annual"  ${d.leave==='annual'?'selected':''}>연차 (−8h)</option>
-             <option value="half"    ${d.leave==='half'?'selected':''}>반차 (−4h)</option>
-             <option value="quarter" ${d.leave==='quarter'?'selected':''}>반반차 (−2h)</option>
-           </select>`;
-
-      const card = document.createElement('div');
-      card.className = cls;
-      card.innerHTML = `
-        <div class="c-head">
-          <div class="c-head-left ${isToday?'today':''}">
-            <div class="d-name">${DAYS_KO[i]}</div>
-            <div class="d-date">${date.getFullYear()}.${date.getMonth()+1}.${String(date.getDate()).padStart(2,'0')}</div>
-          </div>
-          <label class="holiday-lbl">
-            <input type="checkbox" ${d.holiday?'checked':''} onchange="onHoliday(${i},this.checked)"> 공휴일
-          </label>
-        </div>
-        <div class="c-body">
-          <div class="time-row">
-            <div class="t-field">
-              <label>출근</label>
-              <input id="t-${i}-in" class="t-input" type="text" inputmode="numeric"
-                placeholder="093000" maxlength="8" value="${d.checkin}"
-                onfocus="this.select()" oninput="onTimeInput(this)"
-                onkeydown="if(event.key==='Enter')this.blur()"
-                onblur="onTimeBlur(this,${i},'checkin')" ${locked?'disabled':''}>
-            </div>
-            <div class="t-field">
-              <label>퇴근</label>
-              <input id="t-${i}-out" class="t-input" type="text" inputmode="numeric"
-                placeholder="183000" maxlength="8" value="${d.checkout}"
-                onfocus="this.select()" oninput="onTimeInput(this)"
-                onkeydown="if(event.key==='Enter')this.blur()"
-                onblur="onTimeBlur(this,${i},'checkout')" ${locked?'disabled':''}>
-              <div id="hint-${i}"></div>
-            </div>
-          </div>
-          <div class="l-field">
-            <label>연차 구분</label>
-            ${leaveCtrl}
-          </div>
-        </div>
-        <div class="c-foot">
-          <div class="f-cell"><div class="f-lbl">근무시간</div><div id="fw-${i}"></div></div>
-          <div class="f-cell"><div class="f-lbl">실근무시간</div><div id="fr-${i}"></div></div>
-          <div class="f-cell"><div class="f-lbl">연차시간</div><div id="fl-${i}"></div></div>
-        </div>`;
-      frag.appendChild(card);
-    });
-    document.getElementById('cards').replaceChildren(frag);
-  }
-
-  function updateCalc() {
-    const data = getData(weekOffset);
-    let sumWork = 0, sumReal = 0, sumLeave = 0;
-
-    data.forEach((d, i) => {
-      const cal = calcDay(d);
-      sumWork += cal.work; sumReal += cal.real; sumLeave += cal.leave;
-
-      const wEl = document.getElementById(`fw-${i}`);
-      const rEl = document.getElementById(`fr-${i}`);
-      const lEl = document.getElementById(`fl-${i}`);
-      if (wEl) wEl.innerHTML = (cal.work>0||d.holiday) ? `<span class="f-val">${fmt(cal.work)}</span>` : `<span class="f-val muted">—</span>`;
-      if (rEl) rEl.innerHTML = (cal.real>0||d.holiday) ? `<span class="f-val blue">${fmt(cal.real)}</span>` : `<span class="f-val muted">—</span>`;
-      if (lEl) lEl.innerHTML = cal.leave>0 ? `<span class="f-val"><span class="badge b-${d.leave}">${fmt(cal.leave)}</span></span>` : `<span class="f-val muted">—</span>`;
-
-      const hEl = document.getElementById(`hint-${i}`);
-      if (hEl) {
-        if (!d.holiday && d.leave!=='annual' && d.checkin && !d.checkout) {
-          const leaveSec = {none:0,annual:8*3600,half:4*3600,quarter:2*3600}[d.leave]??0;
-          const needed   = TARGET - countedExcluding(data,i) - leaveSec;
-          if (needed <= 0) {
-            hEl.innerHTML = `<div class="t-hint done">목표 달성 ✓</div>`;
-          } else {
-            const reqCo = calcRequiredCheckout(toSec(d.checkin), needed);
-            hEl.innerHTML = (reqCo&&reqCo<24*3600) ? `<div class="t-hint need">목표 퇴근 <strong>${fmt(reqCo)}</strong></div>` : '';
-          }
-        } else { hEl.innerHTML = ''; }
-      }
-    });
-
-    const counted = sumReal + sumLeave;
-    const diff    = counted - TARGET;
-    const pct     = Math.min(100, Math.round((counted/TARGET)*100));
-
-    document.getElementById('summary').innerHTML = [
-      { lbl:'총 근무시간',   val:fmt(sumWork),  cls:'' },
-      { lbl:'총 실근무시간', val:fmt(sumReal),  cls:'c-blue' },
-      { lbl:'총 연차시간',   val:fmt(sumLeave), cls:'' },
-      { lbl:'총 인정시간',   val:fmt(counted),  cls:'c-blue' },
-      { lbl:'기본 목표',     val:'40:00:00',    cls:'c-gray' },
-      { lbl:diff>=0?'초과':'부족', val:(diff>=0?'+':'')+fmt(diff), cls:diff>=0?'c-green':'c-red' },
-    ].map(c=>`<div class="s-card ${c.cls}"><div class="s-lbl">${c.lbl}</div><div class="s-val">${c.val}</div></div>`).join('');
-
-    const fill = document.getElementById('barFill');
-    fill.style.width = pct+'%';
-    fill.className = 'bar-fill '+(pct>=100?'over':pct>=50?'ok':'under');
-    document.getElementById('progMeta').textContent = `${fmt(counted)} / 40:00:00 (${pct}%)`;
-  }
-
-  // ── 인증 ─────────────────────────────────────────────────────
-  async function signInWithGoogle() {
-    try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
-    } catch(e) {
-      if (e.code !== 'auth/popup-closed-by-user') alert('로그인 실패: ' + e.message);
-    }
-  }
-
-  async function doSignOut() {
-    if (!confirm('로그아웃 하시겠어요?')) return;
-    if (currentUser?.isNickname) {
-      localStorage.removeItem('wh_loggedin');
-      currentUser = null;
-      Object.keys(_cache).forEach(k => delete _cache[k]);
-      showLogin();
-    } else {
-      await signOut(auth);
-    }
-  }
-
-  function hideSplash() {
-    const splash = document.getElementById('splashScreen');
-    if (!splash) return;
-    splash.classList.add('fade-out');
-    setTimeout(() => splash.remove(), 280);
-  }
-
-  function showApp(user) {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = '';
-
-    if (user.isNickname) {
-      document.getElementById('userPhoto').style.display = 'none';
-      const initBar = document.getElementById('userInitialBar');
-      initBar.style.display = '';
-      initBar.textContent = user.displayName[0].toUpperCase();
-      document.getElementById('userName').textContent = user.displayName;
-      document.getElementById('userEmail').textContent = '';
-    } else {
-      document.getElementById('userInitialBar').style.display = 'none';
-      const photo = document.getElementById('userPhoto');
-      photo.style.display = '';
-      photo.src = user.photoURL || '';
-      document.getElementById('userName').textContent = user.displayName || '사용자';
-      document.getElementById('userEmail').textContent = user.email || '';
-    }
-  }
-
-  function showLogin() {
-    document.getElementById('loginScreen').style.display = '';
-    document.getElementById('mainApp').style.display = 'none';
-    initLoginScreen();
-  }
-
-  async function startApp() {
-    Object.keys(_cache).forEach(k => delete _cache[k]);
-    weekOffset = 0;
-    document.getElementById('cards').innerHTML =
-      '<div class="loading-box"><div class="spinner"></div><span>불러오는 중…</span></div>';
-    hideSplash();
-    await loadWeek(weekOffset);
-    updateWeekLabel();
-    buildCards();
-    updateCalc();
-  }
-
-  // ── 앱 초기화 ────────────────────────────────────────────────
-  const splashTimer = setTimeout(() => {
-    hideSplash();
-    showLogin();
-  }, 10000);
-
-  onAuthStateChanged(auth, async (user) => {
-    clearTimeout(splashTimer);
-    if (user) {
-      currentUser = user;
-      showApp(user);
-      await startApp();
-    } else {
-      const savedNick = localStorage.getItem(SAVED_NICK);
-      const loggedIn  = localStorage.getItem('wh_loggedin');
-      if (savedNick && loggedIn) {
-        currentUser = { uid: savedNick, displayName: savedNick, email: null, photoURL: null, isNickname: true };
-        showApp(currentUser);
-        await startApp();
-      } else {
-        showLogin();
-        hideSplash();
-      }
-    }
-  });
-
-  document.getElementById('googleLoginBtn').addEventListener('click', signInWithGoogle);
-  document.getElementById('logoutBtn').addEventListener('click', doSignOut);
-
-  // ── 인라인 핸들러용 전역 노출 ────────────────────────────────
-  window.onTimeInput  = onTimeInput;
-  window.onTimeBlur   = onTimeBlur;
-  window.onHoliday    = onHoliday;
-  window.onLeave      = onLeave;
-  window.changeWeek   = changeWeek;
-</script>
 </body>
 </html>
