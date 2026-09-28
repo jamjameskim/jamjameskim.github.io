@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f8fa" />
+    <meta name="description" content="무신사머니 주간 미션 첫 참여 개선 프로토타입" />
+    <title>무신사머니 주간 미션</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./filtered.css" />
+  </head>
+  <body>
+    <main class="prototype-shell">
+      <aside class="prototype-tools" aria-label="프로토타입 상태 설정">
+        <span class="tool-label">화면 상태</span>
+        <div class="state-switch" role="group" aria-label="진행 상태 선택">
+          <button class="state-button is-active" data-state="0">참여 전</button>
+          <button class="state-button" data-state="2">진행 중</button>
+          <button class="state-button" data-state="4">완료</button>
+        </div>
+      </aside>
+
+      <section class="phone" aria-label="무신사머니 포인트 모으기 프로토타입">
+        <header class="app-header">
+          <button class="icon-button" id="backButton" aria-label="뒤로가기">
+            <span aria-hidden="true">‹</span>
+          </button>
+          <h1 id="pageTitle">무신사머니 포인트 모으기</h1>
+          <button class="icon-button home-icon" aria-label="홈으로 이동">
+            <span aria-hidden="true">⌂</span>
+          </button>
+        </header>
+
+        <div id="homeView" class="view is-active">
+          <nav class="feature-nav" aria-label="혜택 메뉴">
+            <button><span class="nav-icon gift">🎁</span><span>럭키박스</span></button>
+            <button id="weeklyNav"><span class="nav-icon flag">🚩</span><span>주간미션</span><b id="navBadge" class="nav-badge">0/4</b></button>
+            <button><span class="nav-icon ball">🔮</span><span>행운뽑기</span></button>
+            <button><span class="nav-icon receipt">✅</span><span>적립내역</span></button>
+          </nav>
+
+          <section class="first-mission-card" id="firstMissionCard">
+            <div class="mission-copy">
+              <span class="eyebrow" id="heroEyebrow">첫 미션으로 추천해요</span>
+              <h2 id="heroTitle">선물상자 참여하고 <strong>10원 받기</strong></h2>
+              <p id="heroDescription">약 30초 · 즉시 적립 · 주간 미션 1회 인정</p>
+            </div>
+            <div class="gift-visual" aria-hidden="true">🎁</div>
+            <div class="hero-progress" id="heroProgress" hidden>
+              <span><b id="heroProgressText">0/4</b> 완료</span>
+              <div class="mini-track"><i id="heroProgressBar"></i></div>
+            </div>
+            <button class="primary-button" id="startMissionButton">바로 참여하기</button>
+            <button class="text-button" id="openWeeklyButton">주간 미션 전체 보기</button>
+          </section>
+
+          <section class="benefit-section">
+            <div class="section-heading">
+              <div>
+                <span class="section-kicker">지금 받을 수 있는</span>
+                <h2>추천 혜택</h2>
+              </div>
+              <button class="more-button">전체보기</button>
+            </div>
+            <div class="offer-carousel">
+              <article class="offer-card yellow">
+                <span class="mission-chip">주간 미션 인정</span>
+                <div class="offer-art">🪜</div>
+                <strong>황금 사다리</strong>
+                <p>사다리만 타면 끝!</p>
+                <span class="reward">1원</span>
+              </article>
+              <article class="offer-card lilac">
+                <span class="mission-chip">30초</span>
+                <div class="offer-art">🔺</div>
+                <strong>선 긋기 챌린지</strong>
+                <p>손가락 하나로 완성</p>
+                <span class="reward">1원</span>
+              </article>
+              <article class="offer-card violet">
+                <span class="mission-chip">즉시 적립</span>
+                <div class="offer-art">🎡</div>
+                <strong>테이블 룰렛</strong>
+                <p>룰렛 한 번이면 완료</p>
+                <span class="reward">1원</span>
+              </article>
+            </div>
+          </section>
+
+          <section class="offer-list-section">
+            <h2>참여하고 무신사머니 받기</h2>
+            <div class="filter-row" aria-label="광고 필터">
+              <button class="is-selected">많이받기</button><button>게임하기</button><button>1분 컷</button><button>가입 없음</button>
+            </div>
+            <div class="offer-list">
+              <article><div class="brand blue">S</div><div><b>미션 참여하면</b><span>스마트안전결제</span></div><strong>1,080원</strong></article>
+              <article><div class="brand green">☂</div><div><b>미션 참여하면</b><span>950원으로 학교 보내기</span></div><strong>360원</strong></article>
+              <article><div class="brand gold">KB</div><div><b>신규 카드 발급 완료 시</b><span>KB국민 체크카드</span></div><strong>7,200원</strong></article>
+            </div>
+          </section>
+        </div>
+
+        <div id="weeklyView" class="view weekly-view">
+          <section class="weekly-summary">
+            <div class="summary-topline"><span>이번 주 최대 보너스</span><button aria-label="주간 미션 안내">ⓘ</button></div>
+            <div class="summary-amount"><strong>1,000</strong><span>원</span></div>
+            <p id="summaryMessage">4개 미션을 완료하면 받을 수 있어요</p>
+            <div class="summary-status"><b id="weeklyCount">0/4 완료</b><span>일요일까지 · D-3</span></div>
+            <div class="progress-track"><i id="weeklyProgress"></i></div>
+          </section>
+
+          <section class="next-card">
+            <span class="eyebrow" id="nextEyebrow">첫 미션으로 추천해요</span>
+            <div class="next-main"><div><h2 id="nextTitle">선물상자 1회 참여</h2><p id="nextMeta">약 30초 · 즉시 적립</p></div><span aria-hidden="true">🎁</span></div>
+            <div class="reward-line"><span>기본 보상</span><strong id="nextReward">10원</strong></div>
+            <button class="primary-button" id="weeklyStartButton">참여하고 10원 받기</button>
+          </section>
+
+          <section class="mission-list-section">
+            <h2>이번 주 미션</h2>
+            <div id="missionList" class="mission-list"></div>
+          </section>
+        </div>
+
+        <div id="offerListView" class="view filtered-view">
+          <section class="filtered-header">
+            <span class="eyebrow">주간 미션 대상 광고</span>
+            <h2 id="filteredTitle">인기 광고 3개 완료</h2>
+            <p id="filteredDescription">아래 광고 중 3개를 완료하면 주간 미션이 달성돼요.</p>
+            <div class="filtered-progress-row"><b id="filteredProgressText">0/3 완료</b><span>일요일까지</span></div>
+            <div class="progress-track"><i id="filteredProgressBar"></i></div>
+          </section>
+          <section class="filtered-list-section">
+            <div class="section-heading compact">
+              <div><span class="section-kicker">참여 가능한 광고</span><h2>완료하기 쉬운 순</h2></div>
+            </div>
+            <div id="filteredOfferList" class="filtered-offer-list"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div class="modal-backdrop" id="missionModal" hidden>
+      <section class="mission-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="modal-close" id="modalClose" aria-label="닫기">×</button>
+        <div class="play-icon" aria-hidden="true">🎁</div>
+        <span class="eyebrow">30초 미션</span>
+        <h2 id="modalTitle">오늘의 선물상자를 열어보세요</h2>
+        <p>선물상자를 열면 무신사머니 10원이 즉시 적립되고 주간 미션에도 반영돼요.</p>
+        <button class="primary-button" id="completeMissionButton">선물상자 열기</button>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">10원이 적립됐어요</div>
+    <script src="./app.js"></script>
+  </body>
+</html>
